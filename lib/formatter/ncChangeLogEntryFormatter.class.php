@@ -50,7 +50,7 @@ class ncChangeLogEntryFormatter
     return str_replace(
       array('%object_name%', '%pk%', '%date%', '%username%'),
       array($adapter->renderClassName(), $adapter->getPrimaryKey(), $adapter->renderCreatedAt(), $adapter->renderUsername()),
-      self::translate($this->insertionFormat)
+      ncChangeLogUtils::translate($this->insertionFormat)
     );
   }
 
@@ -62,7 +62,7 @@ class ncChangeLogEntryFormatter
    */
   public function formatUpdate(ncChangeLogAdapter $adapter)
   {
-    return implode("\r\n", $adapter);
+    return implode("\r\n", $adapter->getArrayCopy());
   }
 
   /**
@@ -76,7 +76,7 @@ class ncChangeLogEntryFormatter
     return str_replace(
       array('%object_name%', '%pk%', '%date%', '%username%'),
       array($adapter->renderClassName(), $adapter->getPrimaryKey(), $adapter->renderCreatedAt(), $adapter->renderUsername()),
-      self::translate($this->deletionFormat)
+      ncChangeLogUtils::translate($this->deletionFormat)
     );
   }
 
@@ -105,7 +105,7 @@ class ncChangeLogEntryFormatter
     return str_replace(
       array('%field_name%', '%old_value%', '%new_value%'),
       array($change->renderFieldName(), $change->getOldValue(), $change->getNewValue()),
-      self::translate($format)
+      ncChangeLogUtils::translate($format)
     );
   }
 
@@ -143,7 +143,7 @@ class ncChangeLogEntryFormatter
     return str_replace(
       array('%operation%', '%date%'),
       array($adapter->renderOperationType(), $adapter->renderCreatedAt()),
-      self::translate($format)
+      ncChangeLogUtils::translate($format)
     );
   }
 
@@ -183,15 +183,4 @@ class ncChangeLogEntryFormatter
     return $this->formatList($adapter);
   }
 
-  /**
-   * Translates text
-   *
-   * @param String
-   * @param Array
-   * @return String
-   */
-  public static function translate($string, $params= null)
-  {
-    return ncChangeLogUtils::translate($string, $params);
-  }
 }

@@ -175,6 +175,12 @@ abstract class ncChangeLogAdapter implements ArrayAccess, Iterator, Countable
   {
     $this->entry->getObject();
   }
+  
+  
+  public function getArrayCopy()
+  {
+    return $this->elements;
+  }
 
   /**************************
    *        Format!         *
@@ -224,7 +230,7 @@ abstract class ncChangeLogAdapter implements ArrayAccess, Iterator, Countable
 
   public function renderOperationType()
   {
-    return $this->ncChangeLogPluginTranslate(ncChangeLogEntryOperation::getStringFor($this->entry->getOperationType()));
+    return ncChangeLogUtils::translate(ncChangeLogEntryOperation::getStringFor($this->entry->getOperationType()));
   }
 
   /**

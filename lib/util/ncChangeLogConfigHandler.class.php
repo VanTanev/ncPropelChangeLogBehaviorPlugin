@@ -29,7 +29,7 @@ class ncChangeLogConfigHandler
 
   static public function isI18NActive()
   {
-    return sfConfig::get("app_nc_change_log_behavior_translation_use_i18n", false) && sfConfig::get('sf_i18n', false);
+    return sfConfig::get("app_nc_change_log_behavior_translation_use_i18n", false);
   }
 
   static public function getFormatterClass()
