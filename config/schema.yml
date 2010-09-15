@@ -9,9 +9,11 @@ classes:
       class_name:
         type:       varchar(255)
         required:   true
+        index:      true
       object_pk:
-        type:       integer
+        type:       varchar(50)
         required:   true
+        index:      true
       changes_detail:
         type:       longvarchar
         required:   true
@@ -20,4 +22,4 @@ classes:
       operation_type:
         type:       integer
         required:   true
-      created_at:
+      created_at:   ~
