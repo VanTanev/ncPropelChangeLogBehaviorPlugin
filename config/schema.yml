@@ -20,6 +20,6 @@ classes:
       username:
         type:       varchar(255)
       operation_type:
-        type:       integer
+        type:       tinyint
         required:   true
       created_at:   ~

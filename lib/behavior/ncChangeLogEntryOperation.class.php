@@ -31,11 +31,9 @@ class ncChangeLogEntryOperation
 
   public static function getI18NStringFor($type_index)
   {
-    sfContext::getInstance()->getConfiguration()->loadHelpers(array('I18N'));
-
-    if ($string = self::getStringFor($type_index))
+    if (( $type_string = self::getStringFor($type_index) ))
     {
-      return __($string, null, 'nc_change_log_behavior');
+      return ncChangeLogUtils::translate($type_string);
     }
 
     return null;

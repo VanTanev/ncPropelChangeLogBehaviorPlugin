@@ -47,11 +47,11 @@ class ncChangeLogEntryFormatter
    */ 
   public function formatInsertion(ncChangeLogAdapter $adapter)
   {
-    return str_replace(array('%object_name%', '%pk%', '%date%', '%username%'),
-                       array($adapter->renderClassName(), $adapter->getPrimaryKey(), $adapter->renderCreatedAt(), $adapter->renderUsername()),
-                       ncChangeLogConfigHandler::isI18NActive()
-                          ? __($this->insertionFormat, null, 'nc_change_log_behavior')
-                          : $this->insertionFormat);
+    return str_replace(
+      array('%object_name%', '%pk%', '%date%', '%username%'),
+      array($adapter->renderClassName(), $adapter->getPrimaryKey(), $adapter->renderCreatedAt(), $adapter->renderUsername()),
+      self::translate($this->insertionFormat)
+    );
   }
 
   /**
@@ -62,12 +62,7 @@ class ncChangeLogEntryFormatter
    */
   public function formatUpdate(ncChangeLogAdapter $adapter)
   {
-    $html = '';
-    foreach ($adapter as $change)
-    {
-      $html .= $change->render()."\r\n";
-    }
-    return $html;
+    return implode("\r\n", $adapter);
   }
 
   /**
@@ -78,9 +73,11 @@ class ncChangeLogEntryFormatter
    */
   public function formatDeletion(ncChangeLogAdapter $adapter)
   {
-    return trim(str_replace(array('%object_name%', '%pk%', '%date%', '%username%'),
+    return str_replace(
+      array('%object_name%', '%pk%', '%date%', '%username%'),
       array($adapter->renderClassName(), $adapter->getPrimaryKey(), $adapter->renderCreatedAt(), $adapter->renderUsername()),
-      ncChangeLogConfigHandler::isI18NActive()? __($this->deletionFormat, null, 'nc_change_log_behavior') : $this->deletionFormat));
+      self::translate($this->deletionFormat)
+    );
   }
 
   /**
@@ -105,9 +102,11 @@ class ncChangeLogEntryFormatter
       $format = $this->valueUpdateFormat;
     }
 
-    return str_replace(array('%field_name%', '%old_value%', '%new_value%'),
-                       array($change->renderFieldName(), $change->getOldValue(), $change->getNewValue()),
-                       self::translate($format));
+    return str_replace(
+      array('%field_name%', '%old_value%', '%new_value%'),
+      array($change->renderFieldName(), $change->getOldValue(), $change->getNewValue()),
+      self::translate($format)
+    );
   }
 
 
@@ -140,14 +139,11 @@ class ncChangeLogEntryFormatter
   protected function formatList($adapter)
   {
     $format = "%operation% at %date%";
-    if (ncChangeLogConfigHandler::isI18NActive())
-    {
-      $format = self::translate($format);
-    }
+
     return str_replace(
       array('%operation%', '%date%'),
       array($adapter->renderOperationType(), $adapter->renderCreatedAt()),
-      $format
+      self::translate($format)
     );
   }
 
@@ -196,14 +192,6 @@ class ncChangeLogEntryFormatter
    */
   public static function translate($string, $params= null)
   {
-    if (ncChangeLogConfigHandler::isI18NActive())
-    {
-      if (sfContext::hasInstance())
-      {
-        sfContext::getInstance()->getConfiguration()->loadHelpers('I18N');
-        return __($string, $params, 'nc_change_log_behavior');
-      }
-    }
-    return $string;
+    return ncChangeLogUtils::translate($string, $params);
   }
 }

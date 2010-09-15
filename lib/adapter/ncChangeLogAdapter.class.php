@@ -254,15 +254,7 @@ abstract class ncChangeLogAdapter implements ArrayAccess, Iterator, Countable
    */
   public function tableTranslate($tableName, $string)
   {
-    if (ncChangeLogConfigHandler::isI18NActive())
-    {
-      if (sfContext::hasInstance())
-      {
-        sfContext::getInstance()->getConfiguration()->loadHelpers('I18N');
-        return __($string, null, 'tables/'.$tableName);
-      }
-    }
-    return $string;
+    return ncChangeLogUtils::translate($string, null, 'tables/' . $tableName);
   }
 
   /**
@@ -293,25 +285,6 @@ abstract class ncChangeLogAdapter implements ArrayAccess, Iterator, Countable
     return $this->tableTranslate($this->getTableName(), $string);
   }
 
-  /**
-   * Uses the plugin catalogue to translate strings.
-   *
-   * @param String $string String to translate
-   *
-   * @return String
-   */
-  public function ncChangeLogPluginTranslate($string)
-  {
-    if (ncChangeLogConfigHandler::isI18NActive())
-    {
-      if (sfContext::hasInstance())
-      {
-        sfContext::getInstance()->getConfiguration()->loadHelpers('I18N');
-        return __($string, null, 'nc_change_log_behavior');
-      }
-    }
-    return $string;
-  }
 
 }
 
