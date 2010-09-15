@@ -101,9 +101,7 @@ class ncChangeLogEntryQueue
    */
   public function selectivePop($class, $operation, $pk = null, $created_at = null)
   {
-    $index = null;
-    $i = 0;
-    foreach ($this->_queue as $entry)
+    foreach ($this->_queue as $index => $entry)
     {
       if (0 == strcmp($entry->getClassName(), $class) && $entry->getOperationType() == $operation)
       {
@@ -112,13 +110,11 @@ class ncChangeLogEntryQueue
           if (!is_null($created_at) && $entry->getCreatedAt(null) == $created_at)
           {
             $hit = $entry;
-            $index = $i;
             break;
           }
           elseif (is_null($created_at))
           {
             $hit = $entry;
-            $index = $i;
             break;
           }
         }
@@ -127,21 +123,18 @@ class ncChangeLogEntryQueue
           if (!is_null($created_at) && $entry->getCreatedAt(null) == $created_at)
           {
             $hit = $entry;
-            $index = $i;
             break;
           }
           elseif (is_null($created_at))
           {
             $hit = $entry;
-            $index = $i;
             break;
           }
         }
       }
-      $i++;
     }
 
-    if (!is_null($index))
+    if (isset($hit))
     {
       $this->removeItemAt($index);
       return $hit;

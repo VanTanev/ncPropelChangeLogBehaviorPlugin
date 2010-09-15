@@ -20,5 +20,23 @@ class ncChangeLogUtils
 
     return $string;
   }
+  
+  
+  public static function getUsername()
+  {
+    if (sfContext::hasInstance())
+    {
+      $user   = sfContext::getInstance()->getUser();
+      $method = ncChangeLogConfigHandler::getUsernameMethod();
 
+      if (method_exists($user, $method))
+      {
+        return $user->$method();
+      }
+    }
+
+    // Use a default username.
+    return ncChangeLogConfigHandler::getUsernameCli();
+  }  
+  
 }

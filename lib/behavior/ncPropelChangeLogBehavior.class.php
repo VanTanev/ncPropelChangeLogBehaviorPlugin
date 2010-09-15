@@ -19,29 +19,24 @@ class ncPropelChangeLogBehavior
    *   * Otherwise (if not running from cli), use 'app_nc_change_log_behavior_username_attribute' configuration value to obtain
    *       sfUser's username attribute (Defaults to 'username').
    *
-   * @param mixed $object
-   * @param PropelPDO $con
-   * @return Boolean or null
+   * @param     mixed $object
+   * @param     PropelPDO $con
    */
-  public static function preSave($object, $con)
+  public function preSave(BaseObject $object, $con = null)
   {
     $entry = new ncChangeLogEntry();
 
     $entry->setClassName(get_class($object));
-    $entry->setUsername(self::getUsername());
+    $entry->setUsername(ncChangeLogUtils::getUsername());
 
     if ($object->isNew())
     {
       $entry->setOperationType(ncChangeLogEntryOperation::NC_CHANGE_LOG_ENTRY_OPERATION_INSERTION);
-
-      try
+      $entry->setCreatedAt(time());
+      
+      if (method_exists($object, 'setCreatedAt'))
       {
-        $object->setCreatedAt(time());
-        $entry->setCreatedAt($object->getCreatedAt(null));
-      }
-      catch (Exception $e)
-      {
-        $entry->setCreatedAt(time());
+        $object->setCreatedAt($entry->getCreatedAt(null));
       }
     }
     else
@@ -51,26 +46,27 @@ class ncPropelChangeLogBehavior
 
       if (!self::_update_changes($object, $entry))
       {
-        return false;
+        return;
       }
     }
 
     ncChangeLogEntryQueue::getInstance()->push($entry);
   }
+  
 
   /**
    * After an object has been saved, commit the changes to its changelog.
    * 
-   * @param mixed $object
-   * @param PropelPDO $con
+   * @param     mixed $object
+   * @param     PropelPDO $con
    */
-  public static function postSave($object, $con)
+  public function postSave(BaseObject $object, $con = null)
   {
     $entry = ncChangeLogEntryQueue::getInstance()->selectivePop(get_class($object), ncChangeLogEntryOperation::NC_CHANGE_LOG_ENTRY_OPERATION_UPDATE, $object->getPrimaryKey());
 
     if (!$entry)
     {
-      $entry = ncChangeLogEntryQueue::getInstance()->selectivePop(get_class($object), ncChangeLogEntryOperation::NC_CHANGE_LOG_ENTRY_OPERATION_INSERTION, null, method_exists($object, 'getCreatedAt')? $object->getCreatedAt(null) : null);
+      $entry = ncChangeLogEntryQueue::getInstance()->selectivePop(get_class($object), ncChangeLogEntryOperation::NC_CHANGE_LOG_ENTRY_OPERATION_INSERTION, null, method_exists($object, 'getCreatedAt') ? $object->getCreatedAt(null) : null);
     }
 
     if ($entry)
@@ -88,9 +84,10 @@ class ncPropelChangeLogBehavior
         $entry->setChangesDetail(base64_encode(serialize($changes)));
       }
 
-      $entry->save();
+      $entry->save($con);
     }
   }
+  
 
   /**
    * After an object has been deleted, state this change in its ChangeLog.
@@ -100,12 +97,12 @@ class ncPropelChangeLogBehavior
    * @param mixed $object
    * @param mixed $con
    */
-  public static function postDelete($object, $con)
+  public function postDelete(BaseObject $object, $con = null)
   {
     $entry = new ncChangeLogEntry();
 
     $entry->setClassName(get_class($object));
-    $entry->setUsername(self::getUsername());
+    $entry->setUsername(ncChangeLogUtils::getUsername());
     $entry->setOperationType(ncChangeLogEntryOperation::NC_CHANGE_LOG_ENTRY_OPERATION_DELETION);
     $entry->setObjectPk($object->getPrimaryKey());
 
@@ -116,9 +113,10 @@ class ncPropelChangeLogBehavior
     );
 
     $entry->setChangesDetail(base64_encode(serialize($changes)));
-    $entry->save();
+    $entry->save($con);
   }
 
+  
   /**
    * Get $object's ChangeLog and return it as an array of ncChangeLogAdapters.
    * If no entry is found, answer an empty Array.
@@ -128,11 +126,12 @@ class ncPropelChangeLogBehavior
    * @param PropelPDO $con
    * @return Array of ncChangeLogEntry
    */
-  public static function getChangeLog($object, $criteria = null, $con = null, $transformToAdapters = true)
+  public function getChangeLog(BaseObject $object, $criteria = null, $con = null, $transformToAdapters = true)
   {
     return self::getChangeLogByPkClassName($object->getPrimaryKey(), get_class($object), $criteria, $con, $transformToAdapters);
   }
 
+  
   public static function getChangeLogByPkClassName($primaryKey, $className, $criteria = null, $con = null, $transformToAdapters = true)
   {
     if ($criteria instanceof Criteria)
@@ -154,6 +153,7 @@ class ncPropelChangeLogBehavior
     return $results;
   }
 
+  
   public static function getRelatedAdapters($tables)
   {
     $results  = array();
@@ -169,6 +169,7 @@ class ncPropelChangeLogBehavior
     return $results;
   }
 
+  
   /**
    * Get $object's Related ChangeLog and return it as an array of ncChangeLogAdapters.
    * If no entry is found, answer an empty Array.
@@ -182,7 +183,7 @@ class ncPropelChangeLogBehavior
    *
    * @return Array of ncChangeLogEntry
    */
-  public static function get1NRelatedChangeLog($object, $from_date = null, $transformToAdapters = true)
+  public function get1NRelatedChangeLog(BaseObject $object, $from_date = null, $transformToAdapters = true)
   {
     $relatedChangeLog = array();
 
@@ -217,17 +218,18 @@ class ncPropelChangeLogBehavior
     return $transformToAdapters? self::getRelatedAdapters($relatedChangeLog) : $relatedChangeLog;
   }
 
- /**
-  * This methods inspects the columns of the object's table and if one of them if a foreign key,
-  * it returns the change log of the referenced object IF it points to the specified object (parameter).
-  *
-  * @param mixed $object
-  * @param date $from_date
-  * @param transformToAdapters
-  *
-  * @return Array of ncChangeLogEntry
-  */
-  public function getNNRelatedChangeLog($object, $from_date = null, $transformToAdapters = true)
+  
+  /**
+   * This methods inspects the columns of the object's table and if one of them if a foreign key,
+   * it returns the change log of the referenced object IF it points to the specified object (parameter).
+   *
+   * @param mixed $object
+   * @param date $from_date
+   * @param transformToAdapters
+   *
+   * @return Array of ncChangeLogEntry
+   */
+  public function getNNRelatedChangeLog(BaseObject $object, $from_date = null, $transformToAdapters = true)
   {
     $relatedChangeLog = array();
     $relatedObjects   = array();
@@ -301,6 +303,7 @@ class ncPropelChangeLogBehavior
         }
       }
     }
+    
     return $relatedChangeLog;
   }
 
@@ -311,11 +314,12 @@ class ncPropelChangeLogBehavior
    * @param mixed $object
    * @return String
    */
-  public static function getChangeLogRoute($object)
+  public function getChangeLogRoute(BaseObject $object)
   {
     return '@nc_change_log?class='.get_class($object).'&pk='.$object->getPrimaryKey();
   }
 
+  
   /**
    * Inspect the changes made to $object since its last version (the one stored in the database).
    * Update $entry's changes_detail to reflect the changes made.
@@ -323,7 +327,7 @@ class ncPropelChangeLogBehavior
    * @param mixed $object
    * @param ncChangeLogEntry $entry
    */
-  protected static function _update_changes($object, ncChangeLogEntry $entry)
+  protected static function _update_changes(BaseObject $object, ncChangeLogEntry $entry)
   {
     //hack: remove $object from it's Peer's instance pool before diff is computed
     call_user_func(array(get_class($object->getPeer()), 'removeInstanceFromPool'), $object);
@@ -346,7 +350,7 @@ class ncPropelChangeLogBehavior
     }
 
     $stored_values  = $stored_object->toArray(BasePeer::TYPE_FIELDNAME);
-    $ignored_fields = self::getIgnoredFields(get_class($object));
+    $ignored_fields = ncChangeLogConfigHandler::getIgnoreFields(get_class($object));
 
     $dbMap = Propel::getDatabaseMap();
     $table = $dbMap->getTable(constant(get_class($object->getPeer()).'::TABLE_NAME'));
@@ -386,35 +390,8 @@ class ncPropelChangeLogBehavior
     return true;
   }
 
-  /**
-   * Return an array of fields that should be ignored in the changelog.
-   *   * Use 'app_nc_change_log_behavior_ignore_fields' configuration value.
-   *       Defaults to:
-   *          <code>
-   *            array(
-   *              'created_at',
-   *              'created_by',
-   *              'updated_at',
-   *              'updated_by'
-   *            );
-   *          </code>
-   *
-   * @return Array
-   */
-  public static function getIgnoredFields($class)
-  {
-    $ignore_fields = ncChangeLogConfigHandler::getIgnoreFields();
 
-    if (!is_null($ignore_fields)) {
-      if (isset($ignore_fields[$class]))
-        return $ignore_fields[$class];
-      elseif (isset($ignore_fields['any_class']))
-        return $ignore_fields['any_class'];
-    }
-
-    return array('created_at', 'created_by', 'updated_at', 'updated_by');
-  }
-
+  
   /**
    * Extract the value method and the required parameters for it, for given a ColumnMap's type.
    * Return an Array holding the value method as first value and its parameters as the second one.
@@ -442,21 +419,6 @@ class ncPropelChangeLogBehavior
     return array($value_method, $params);
   }
 
-  static protected function getUsername()
-  {
-    if (sfContext::hasInstance())
-    {
-      $user   = sfContext::getInstance()->getUser();
-      $method = ncChangeLogConfigHandler::getUsernameMethod();
 
-      if (method_exists($user, $method))
-      {
-        return $user->$method();
-      }
-    }
-
-    // Use a default username.
-    return ncChangeLogConfigHandler::getUsernameCli();
-  }
 
 }

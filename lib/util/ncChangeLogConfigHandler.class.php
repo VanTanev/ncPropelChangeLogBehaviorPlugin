@@ -53,10 +53,44 @@ class ncChangeLogConfigHandler
     return sfConfig::get('app_nc_change_log_behavior_username_cli', 'cli');
   }
 
-  static public function getIgnoreFields()
+
+  /**
+   * Return an array of fields that should be ignored in the changelog.
+   *   * Use 'app_nc_change_log_behavior_ignore_fields' configuration value.
+   *       Defaults to:
+   *          <code>
+   *            array(
+   *              'created_at',
+   *              'created_by',
+   *              'updated_at',
+   *              'updated_by'
+   *            );
+   *          </code>
+   *
+   * @return Array
+   */
+  static public function getIgnoreFields($class = null)
   {
-    return sfConfig::get('app_nc_change_log_behavior_ignore_fields');
+    $fields = array('created_at', 'created_by', 'updated_at', 'updated_by');
+    
+    if (!is_null($class))
+    {
+      $field_collections = sfConfig::get('app_nc_change_log_behavior_ignore_fields', array());
+      
+      if (isset($field_collections[$class]))
+      {
+        $fields = array_merge($fields, $field_collections[$class]);
+      }
+      
+      if (isset($field_collections['any_class']))
+      {
+        $fields = array_merge($fields, $field_collections['any_class']);
+      }
+    }
+    
+    return $fields;
   }
+  
 
   static public function getTranslationObjectMethod()
   {
