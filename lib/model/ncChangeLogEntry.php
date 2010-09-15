@@ -163,13 +163,13 @@ class ncChangeLogEntry extends BasencChangeLogEntry
     {
       case ncChangeLogEntryOperation::NC_CHANGE_LOG_ENTRY_OPERATION_UPDATE:
         return new ncChangeLogAdapterUpdate($this);
-        break;
+
       case ncChangeLogEntryOperation::NC_CHANGE_LOG_ENTRY_OPERATION_INSERTION:
         return new ncChangeLogAdapterInsertion($this);
-        break;
+
       case ncChangeLogEntryOperation::NC_CHANGE_LOG_ENTRY_OPERATION_DELETION:
         return new ncChangeLogAdapterDeletion($this);
-        break;
+
       default:
         return null;
     }

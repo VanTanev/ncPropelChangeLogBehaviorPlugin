@@ -23,7 +23,7 @@ abstract class ncChangeLogAdapter implements ArrayAccess, Iterator, Countable
   {
     $this->entry    = $entry;
     $this->elements = $this->getChangeLog();
-    $this->keys     = array_keys($this->elements? $this->elements : array());
+    $this->keys     = array_keys($this->elements ? $this->elements : array());
   }
 
 

@@ -142,14 +142,25 @@ class ncPropelChangeLogBehavior
     {
       $criteria = new Criteria();
     }
+    
     $criteria->add(ncChangeLogEntryPeer::CLASS_NAME, $className);
     $criteria->add(ncChangeLogEntryPeer::OBJECT_PK, $primaryKey);
 
     $results = array();
-    foreach (ncChangeLogEntryPeer::doSelect($criteria) as $obj)
+    $entries = ncChangeLogEntryPeer::doSelect($criteria, $con);
+    
+    if ($transformToAdapters)
     {
-      $results[] = $transformToAdapters? $obj->getAdapter() : $obj;
+      foreach ($entries as $entry)
+      {
+        $results[] = $entry->getAdapter();
+      }
     }
+    else
+    {
+      $results = $entries;
+    }
+    
     return $results;
   }
 
@@ -332,56 +343,43 @@ class ncPropelChangeLogBehavior
     //hack: remove $object from it's Peer's instance pool before diff is computed
     call_user_func(array(get_class($object->getPeer()), 'removeInstanceFromPool'), $object);
 
-    $new_values = $object->toArray(BasePeer::TYPE_FIELDNAME);
-
-    if (is_array($object->getPrimaryKey()))
-    {
-      $stored_object = call_user_func_array(array(get_class($object->getPeer()), 'retrieveByPK'), $object->getPrimaryKey());
-    }
-    else
-    {
-      $stored_object = call_user_func(array(get_class($object->getPeer()), 'retrieveByPK'), $object->getPrimaryKey());
-    }
-
-    if (!$stored_object)
+    $stored_object = call_user_func_array(array(get_class($object->getPeer()), 'retrieveByPK'), is_array($object->getPrimaryKey()) ? $object->getPrimaryKey() : array($object->getPrimaryKey()));
+ 
+    if (!$stored_object || !$object->isModified())
     {
       // Unable to retrieve object from database: do nothing
       return false;
     }
 
-    $stored_values  = $stored_object->toArray(BasePeer::TYPE_FIELDNAME);
     $ignored_fields = ncChangeLogConfigHandler::getIgnoreFields(get_class($object));
-
-    $dbMap = Propel::getDatabaseMap();
-    $table = $dbMap->getTable(constant(get_class($object->getPeer()).'::TABLE_NAME'));
+    $tableMap = Propel::getDatabaseMap()->getTable(constant(get_class($object->getPeer()).'::TABLE_NAME'));
 
     $diff = array('class' => get_class($object), 'pk' => $object->getPrimaryKey(), 'changes' => array());
-
-    foreach ($new_values as $key => $value)
+    
+    foreach ($object->getModifiedColumns() as $column)
     {
-      if (in_array($key, $ignored_fields))
+      $col_fieldName = BasePeer::translateFieldname(get_class($object), $column, BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME);
+      
+      if (!in_array($col_fieldName, $ignored_fields))
       {
-        continue;
-      }
-      elseif ($value != $stored_values[$key])
-      {
-        $column = $table->getColumn(BasePeer::translateFieldname(get_class($object), $key, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_COLNAME));
-        list($value_method, $params) = self::extractValueMethod($column);
-
-        $diff['changes'][$key] = array(
+        $columnMap = $tableMap->getColumn($column);
+        list ($value_method, $params) = self::extractValueMethod($columnMap);
+        
+        $diff['changes'][$col_fieldName] = array(
           'old'   => $stored_object->$value_method($params),
           'new'   => $object->$value_method($params),
-          'field' => $key,
+          'field' => $col_fieldName,
           'raw'    => array(
-            'old'   => $stored_values[$key],
-            'new'   => $value
+            'old'   => $stored_values->$value_method(),
+            'new'   => $object->$value_method(),
           )
         );
       }
     }
 
-    if (isset($diff['changes']) && empty($diff['changes']))
+    if (empty($diff['changes']))
     {
+      // it's possible that only ignored fields were modified, in which case do nothing
       return false;
     }
 
@@ -401,8 +399,9 @@ class ncPropelChangeLogBehavior
    */
   static public function extractValueMethod(ColumnMap $column)
   {
-    $value_method = 'get'.$column->getPhpName();
+    $value_method = 'get' . $column->getPhpName();
     $params = null;
+    
     if (in_array($column->getType(), array(PropelColumnTypes::BU_DATE, PropelColumnTypes::DATE)))
     {
       $params = ncChangeLogConfigHandler::getDateFormat();

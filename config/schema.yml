@@ -5,7 +5,7 @@ classes:
   ncChangeLogEntry:
     tableName:      nc_change_log_entry
     columns:
-      id:
+      id:           ~
       class_name:
         type:       varchar(255)
         required:   true

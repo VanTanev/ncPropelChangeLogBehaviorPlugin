@@ -72,20 +72,16 @@ class ncChangeLogConfigHandler
   static public function getIgnoreFields($class = null)
   {
     $fields = array('created_at', 'created_by', 'updated_at', 'updated_by');
+    $field_collections = sfConfig::get('app_nc_change_log_behavior_ignore_fields', array());
     
-    if (!is_null($class))
+    if (isset($field_collections['any_class']))
     {
-      $field_collections = sfConfig::get('app_nc_change_log_behavior_ignore_fields', array());
-      
-      if (isset($field_collections[$class]))
-      {
-        $fields = array_merge($fields, $field_collections[$class]);
-      }
-      
-      if (isset($field_collections['any_class']))
-      {
-        $fields = array_merge($fields, $field_collections['any_class']);
-      }
+      $fields = array_merge($fields, $field_collections['any_class']);
+    }
+
+    if (!is_null($class) && isset($field_collections[$class]))
+    {
+      $fields = array_merge($fields, $field_collections[$class]);
     }
     
     return $fields;
@@ -96,7 +92,7 @@ class ncChangeLogConfigHandler
   {
     return sfConfig::get('app_nc_change_log_behavior_translation_object_method', 'getHumanName') ;
   }
-
+  
   static public function getTranslationFieldMethod()
   {
     return sfConfig::get('app_nc_change_log_behavior_translation_field_method', 'translateField');

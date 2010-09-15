@@ -180,6 +180,14 @@ class ncChangeLogEntryQueue
    */
   public function alreadyHas(ncChangeLogEntry $entry)
   {
-    return (array_search($entry, $this->_queue) !== false);
+    foreach ($this->_queue as $existing_entry)
+    {
+      if ($entry->equals($existing_entry))
+      {
+        return true;
+      }
+    }
+    
+    return false;
   }
 }
