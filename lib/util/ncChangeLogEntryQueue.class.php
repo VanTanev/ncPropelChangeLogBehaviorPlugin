@@ -162,7 +162,7 @@ class ncChangeLogEntryQueue
     if ($index >= 0 && $index < count($this->_queue))
     {
       $return = $this->_queue[$index];
-      array_splice($this->_queue, $index, 1);
+      unset($this->_queue[$index]);
       return $return;
     }
 
