@@ -1,30 +1,15 @@
 <?php
 
-if (!isset($_SERVER['SYMFONY']))
-{
-  throw new RuntimeException('Could not find symfony core libraries.');
-}
+// setup constants
+$_SERVER['SYMFONY'] = dirname(__FILE__).'/../../../../lib/vendor/symfony/';
+define('SF_DIR', $_SERVER['SYMFONY']);
 
-require_once $_SERVER['SYMFONY'].'/autoload/sfCoreAutoload.class.php';
-sfCoreAutoload::register();
 
-$configuration = new sfProjectConfiguration(dirname(__FILE__).'/../fixtures/project');
-require_once $configuration->getSymfonyLibDir().'/vendor/lime/lime.php';
+require_once SF_DIR . 'test/bootstrap/unit.php';
+require_once SF_DIR . 'lib/autoload/sfSimpleAutoload.class.php';
 
-function ncPropelChangeLogBehaviorPlugin_autoload_again($class)
-{
-  $autoload = sfSimpleAutoload::getInstance();
-  $autoload->reload();
-  return $autoload->autoload($class);
-}
-spl_autoload_register('ncPropelChangeLogBehaviorPlugin_autoload_again');
+$autoload = sfSimpleAutoload::getInstance(sys_get_temp_dir().DIRECTORY_SEPARATOR.sprintf('sf_autoload_unit_nc_changelog_%s.data', md5(__FILE__)));
+$autoload->addDirectory(realpath(dirname(__FILE__).'/../../lib'));
+$autoload->register();
 
-if (file_exists($config = dirname(__FILE__).'/../../config/ncPropelChangeLogBehaviorPluginConfiguration.class.php'))
-{
-  require_once $config;
-  $plugin_configuration = new ncPropelChangeLogBehaviorPluginConfiguration($configuration, dirname(__FILE__).'/../..', 'ncPropelChangeLogBehaviorPlugin');
-}
-else
-{
-  $plugin_configuration = new sfPluginConfigurationGeneric($configuration, dirname(__FILE__).'/../..', 'ncPropelChangeLogBehaviorPlugin');
-}
+$_test_dir = realpath(dirname(__FILE__).'/..');
