@@ -1,6 +1,6 @@
 <?php
 
-class ncChangeLogEntryPeer extends PluginncChangeLogEntryPeer
+class PluginncChangeLogEntryPeer extends BasencChangeLogEntryPeer
 {
   protected static function convertToAdapter($entries)
   {
@@ -35,5 +35,5 @@ class ncChangeLogEntryPeer extends PluginncChangeLogEntryPeer
     $c->addAnd($criterion2);
 
     return self::convertToAdapter(ncChangeLogEntryPeer::doSelect($c));
-  }
+  }  
 }
