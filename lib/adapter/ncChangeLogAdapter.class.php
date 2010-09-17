@@ -6,14 +6,11 @@
  *
  * These classes allows to access each type operation in a uniform way.
  */
-abstract class ncChangeLogAdapter implements ArrayAccess, Iterator, Countable
+abstract class ncChangeLogAdapter extends ArrayObject
 {
-  protected
-    $elements,
-    $keys,
-    $count;
+  /** @var ArrayIterator */
+  protected $iterator;
     
-  
   /** @var ncChangeLogEntry  */
   protected $entry;  
 
@@ -26,59 +23,26 @@ abstract class ncChangeLogAdapter implements ArrayAccess, Iterator, Countable
   public function __construct($entry)
   {
     $this->entry    = $entry;
-    $this->elements = $this->getChangeLog();
-    $this->keys     = array_keys($this->elements ? $this->elements : array());
+    $this->exchangeArray($this->getChangeLog());
   }
 
-
-  /******************************
-   * Iterator interface methods
-   *****************************/
-  public function rewind()
+  
+  /**
+  * Overrides ArrayObject::getIterator() to return always the same iterator object
+  * instead of a new instance for each call
+  */
+  public function getIterator()
   {
-    reset($this->keys);
-    $this->count = count($this->keys);
+    if (null === $this->iterator) {
+      $this->iterator = new ArrayIterator($this);
+    }
+    return $this->iterator;
   }
-
-  public function current()
-  {
-    return $this->elements[current($this->keys)];
-  }
-
-  public function key()
-  {
-    return current($this->keys);
-  }
-
-  public function next()
-  {
-    next($this->keys);
-    --$this->count;
-  }
-
-  public function valid()
-  {
-    return $this->count > 0;
-  }
-
-
-  /*******************************
-   * Countable interface Methods
-   *******************************/
-  public function count()
-  {
-    return count($this->keys);
-  }
-
+    
 
   /*********************************
    * ArrayAccess interface Methods *
    ********************************/
-  public function offsetExists($name)
-  {
-    return isset($this->elements[$name]);
-  }
-
   public function offsetGet($name)
   {
     if (!$this->offsetExists($name))
@@ -157,24 +121,27 @@ abstract class ncChangeLogAdapter implements ArrayAccess, Iterator, Countable
     return array();
   }
 
-
+  /**
+   * Return the related entry
+   * 
+   * @return ncChangeLogEntry
+   */
   public function getEntry()
   {
     return $this->entry;
   }
 
 
+  /**
+   * Return the related entry
+   * 
+   * @return BaseObject
+   */
   public function getObject()
   {
     $this->entry->getObject();
   }
-  
-  
-  public function getArrayCopy()
-  {
-    return $this->elements;
-  }
-
+ 
 
   /**************************
    *        Format!         *

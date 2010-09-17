@@ -59,7 +59,7 @@ class ncChangeLogEntry extends BasencChangeLogEntry
   /**
    * Try to retrieve this entry's related object.
    *
-   * @return mixed
+   * @return    BaseObject|null
    */
   public function getObject()
   {
@@ -75,11 +75,35 @@ class ncChangeLogEntry extends BasencChangeLogEntry
 
   
   /**
+   * Returns the changes detail, in the original format it was set
+   * 
+   * @return    array
+   */
+  public function getChangesDetail()
+  {
+    return unserialize(base64_decode(parent::getChangesDetail()));
+  }
+  
+  /**
+   * Sets the changes dtetal, converting them to base64 encoded string for the DB
+   * 
+   * @param     array $v
+   * @return    ncChangeLogEntry
+   */
+  public function setChangesDetail($v)
+  {
+    return parent::setChangesDetail(base64_encode(serialize($v)));
+  }
+  
+  
+  /**
    * Returns the array of changes
+   * 
+   * kept for BC
    */
   public function getChangesDetailArray()
   {
-    return unserialize(base64_decode($this->getChangesDetail()));
+    return $this->getChangesDetail();
   }
 
   
@@ -88,7 +112,7 @@ class ncChangeLogEntry extends BasencChangeLogEntry
    */
   public function getObjectClassName()
   {
-    $changeLog = $this->getChangesDetailArray();
+    $changeLog = $this->getChangesDetail();
     return $changeLog['class'];
   }
 
@@ -116,19 +140,19 @@ class ncChangeLogEntry extends BasencChangeLogEntry
    */
   public function getObjectPrimaryKey()
   {
-    $changeLog = $this->getChangesDetailArray();
+    $changeLog = $this->getChangesDetail();
     return $changeLog['pk'];
   }
 
   
   /**
-   * Retrieve the list of changes as an array with each value equal to an array of ('old' => string, 'new' => string, 'field' => string, 'raw' => array())
+   * Retrieve the list of changes as an array with each value equal to an array of ('old' => string, 'new' => string, 'field' => string, 'raw' => array('old'/'new))
    */
   public function getObjectChanges()
   {
     if ($this->isOperation(ncChangeLogEntryOperation::NC_CHANGE_LOG_ENTRY_OPERATION_UPDATE))
     {
-      $changeLog = $this->getChangesDetailArray();
+      $changeLog = $this->getChangesDetail();
       return $changeLog['changes'];
     }
     else

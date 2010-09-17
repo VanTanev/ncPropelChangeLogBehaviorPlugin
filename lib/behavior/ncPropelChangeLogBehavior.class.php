@@ -81,7 +81,7 @@ class ncPropelChangeLogBehavior
           'raw'   => array()
         );
 
-        $entry->setChangesDetail(base64_encode(serialize($changes)));
+        $entry->setChangesDetail($changes);
       }
 
       $entry->save($con);
@@ -112,7 +112,7 @@ class ncPropelChangeLogBehavior
       'raw'   => array()
     );
 
-    $entry->setChangesDetail(base64_encode(serialize($changes)));
+    $entry->setChangesDetail($changes);
     $entry->save($con);
   }
 
@@ -384,7 +384,7 @@ class ncPropelChangeLogBehavior
       return false;
     }
 
-    $entry->setChangesDetail(base64_encode(serialize($diff)));
+    $entry->setChangesDetail($diff);
 
     return true;
   }
