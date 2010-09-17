@@ -30,8 +30,8 @@ sfContext::createInstance($configuration);
 // set cleanup/shutdown
 function ncPropelChangeLogBehaviorPlugin_cleanup()
 {
-  sfToolkit::clearDirectory(dirname(__FILE__).'/../fixtures/project/cache');
-  sfToolkit::clearDirectory(dirname(__FILE__).'/../fixtures/project/log');
+  sfToolkit::clearDirectory(sfConfig::get('sf_cache_dir'));
+  sfToolkit::clearDirectory(sfConfig::get('sf_log_dir'));
 }
 ncPropelChangeLogBehaviorPlugin_shutdown();
 register_shutdown_function('ncPropelChangeLogBehaviorPlugin_shutdown');
@@ -51,7 +51,10 @@ function ncPropelChangeLogBehaviorPlugin_shutdown()
 
 
 // run propel generator tasks if necessary
-$configuration->initializePropel($app);
+if (!isset($init_propel) || true == $init_propel)
+{
+  $configuration->initializePropel($app);
+}
 if (isset($fixtures))
 {
   $configuration->loadFixtures($fixtures);

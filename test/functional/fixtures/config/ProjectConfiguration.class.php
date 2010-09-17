@@ -8,13 +8,16 @@ if (!isset($_SERVER['SYMFONY']))
 require_once $_SERVER['SYMFONY'].'/autoload/sfCoreAutoload.class.php';
 sfCoreAutoload::register();
 
+
 class ProjectConfiguration extends sfProjectConfiguration
 {
+  
   public function setup()
   {
     $this->setPlugins(array('ncPropelChangeLogBehaviorPlugin'));
     $this->setPluginPath('ncPropelChangeLogBehaviorPlugin', dirname(__FILE__).'/../../../..');
   }
+  
   
   public function initializePropel($app)
   {
@@ -39,6 +42,7 @@ class ProjectConfiguration extends sfProjectConfiguration
       $output = ob_get_clean();
     }
 
+    /* * /
     $files = glob(sfConfig::get('sf_lib_dir').'/form/base/*.php');
     if (false === $files || !count($files))
     {
@@ -46,8 +50,10 @@ class ProjectConfiguration extends sfProjectConfiguration
       $task = new sfPropelBuildFormsTask($this->dispatcher, new sfFormatter());
       $task->run(array(), array('application='.$app));
     }
+    /* */
   }
 
+  
   public function loadFixtures($fixtures)
   {
     // initialize database manager

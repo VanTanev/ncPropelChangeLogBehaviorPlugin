@@ -76,5 +76,3 @@ class ncChangeLogAdapterUpdate extends ncChangeLogAdapter
     return $this->getFormatter()->formatListUpdate($this, $url);
   }
 }
-
-?>

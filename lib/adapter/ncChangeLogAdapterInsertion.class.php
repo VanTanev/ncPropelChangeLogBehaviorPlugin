@@ -36,5 +36,3 @@ class ncChangeLogAdapterInsertion extends ncChangeLogAdapter
     return $this->getFormatter()->formatListInsertion($this, $url);
   }
 }
-
-?>

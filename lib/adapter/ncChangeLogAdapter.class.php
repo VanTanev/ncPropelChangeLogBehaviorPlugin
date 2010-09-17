@@ -9,15 +9,19 @@
 abstract class ncChangeLogAdapter implements ArrayAccess, Iterator, Countable
 {
   protected
-    $entry,
     $elements,
     $keys,
     $count;
+    
+  
+  /** @var ncChangeLogEntry  */
+  protected $entry;  
 
+  
   /**
    * Constructor
    *
-   * @params ncChangeLogEntry The entry to adapt.
+   * @param ncChangeLogEntry The entry to adapt.
    */
   public function __construct($entry)
   {
@@ -27,13 +31,9 @@ abstract class ncChangeLogAdapter implements ArrayAccess, Iterator, Countable
   }
 
 
-
-
   /******************************
    * Iterator interface methods
    *****************************/
-
-
   public function rewind()
   {
     reset($this->keys);
@@ -62,26 +62,18 @@ abstract class ncChangeLogAdapter implements ArrayAccess, Iterator, Countable
   }
 
 
-
   /*******************************
    * Countable interface Methods
    *******************************/
-
-
-
   public function count()
   {
     return count($this->keys);
   }
 
 
-
   /*********************************
    * ArrayAccess interface Methods *
    ********************************/
-
-
-
   public function offsetExists($name)
   {
     return isset($this->elements[$name]);
@@ -91,7 +83,7 @@ abstract class ncChangeLogAdapter implements ArrayAccess, Iterator, Countable
   {
     if (!$this->offsetExists($name))
     {
-        throw new InvalidArgumentException(sprintf('Change "%s" does not exist.', $name));
+      throw new InvalidArgumentException(sprintf('Change "%s" does not exist.', $name));
     }
 
     return $this->elements[$name];
@@ -106,6 +98,7 @@ abstract class ncChangeLogAdapter implements ArrayAccess, Iterator, Countable
   {
     throw new LogicException('Cannot unset changes.');
   }
+
 
 
 
@@ -182,15 +175,22 @@ abstract class ncChangeLogAdapter implements ArrayAccess, Iterator, Countable
     return $this->elements;
   }
 
+
   /**************************
    *        Format!         *
    **************************/
-
+   
+  /**
+   * Returns a new instance of the formatter class
+   * 
+   * @return ncChangeLogEntryFormatter
+   */
   protected function getFormatter()
   {
-    $formatterName = ncChangeLogConfigHandler::getFormatter();
-    return new $formatterName();
+    $formatterClass = ncChangeLogConfigHandler::getFormatterClass();
+    return new $formatterClass();
   }
+  
 
   /**
    * Retrieves the HTML representation of the class name.
@@ -212,6 +212,7 @@ abstract class ncChangeLogAdapter implements ArrayAccess, Iterator, Countable
     return $this->entry->getCreatedAt(ncChangeLogConfigHandler::getDateTimeFormat());
   }
 
+  
   /**
    * Retrieves the formatted username of the ChangeLogEntry
    *
@@ -243,9 +244,12 @@ abstract class ncChangeLogAdapter implements ArrayAccess, Iterator, Countable
   /**
    * Retrieves the HTML representation
    * to be shown in a ncChangeLogEntry listing
+   * 
+   * @return String HTML representation of the listing.
    */
   abstract public function renderList($url = null);
 
+  
   /*************************
    *      Translation      *
    ************************/
@@ -263,6 +267,7 @@ abstract class ncChangeLogAdapter implements ArrayAccess, Iterator, Countable
     return ncChangeLogUtils::translate($string, null, 'tables/' . $tableName);
   }
 
+
   /**
    * Retrieves a translated string usign the table's catalogue but
    * using the className.
@@ -279,6 +284,7 @@ abstract class ncChangeLogAdapter implements ArrayAccess, Iterator, Countable
     return $this->tableTranslate($tableName, $string);
   }
 
+
   /**
    * Translates strings using this adapter's catalogue.
    *
@@ -291,7 +297,4 @@ abstract class ncChangeLogAdapter implements ArrayAccess, Iterator, Countable
     return $this->tableTranslate($this->getTableName(), $string);
   }
 
-
 }
-
-?>

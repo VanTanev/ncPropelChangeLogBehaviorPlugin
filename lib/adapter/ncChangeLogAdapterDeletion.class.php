@@ -37,5 +37,3 @@ class ncChangeLogAdapterDeletion extends ncChangeLogAdapter
     return $this->getFormatter()->formatListDeletion($this, $url);
   }
 }
-
-?>
