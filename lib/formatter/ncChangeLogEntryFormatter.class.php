@@ -14,8 +14,9 @@ class ncChangeLogEntryFormatter
     /* Insertion format: available placeholders: * %object_name% * %pk% */
     $insertionFormat     = "A new %object_name% has been created and it has been given the primary key '%pk%' at %date% by %username%.",
     /* Deletion format: available placeholders: * %object_name% * %pk% */
-    $deletionFormat      = "The %object_name% with primary key '%pk%' has been deleted at %date% by %username%.";
-
+    $deletionFormat      = "The %object_name% with primary key '%pk%' has been deleted at %date% by %username%.",
+    $listEntry           = "%operation% at %date%";
+    
 
   /**
    * Format string that should be call before the
@@ -28,6 +29,7 @@ class ncChangeLogEntryFormatter
     return '';
   }
 
+
   /**
    * Format string that should be call after the
    * renderization of an ncChangeLogEntry
@@ -38,6 +40,7 @@ class ncChangeLogEntryFormatter
   {
     return '';
   }
+
 
   /**
    * Format an insertion operation.
@@ -54,6 +57,7 @@ class ncChangeLogEntryFormatter
     );
   }
 
+
   /**
    * Format an update operation.
    *
@@ -62,8 +66,9 @@ class ncChangeLogEntryFormatter
    */
   public function formatUpdate(ncChangeLogAdapter $adapter)
   {
-    return implode("\r\n", $adapter->getArrayCopy());
+    return implode(PHP_EOL, array_walk($adapter->getArrayCopy(), create_function('$ncChangeLogUpdateChange', 'return $ncChangeLogUpdateChange->render()')));
   }
+
 
   /**
    * Format a deletion operation.
@@ -79,6 +84,7 @@ class ncChangeLogEntryFormatter
       ncChangeLogUtils::translate($this->deletionFormat)
     );
   }
+
 
   /**
    * Formats a 'change' in an update operation
@@ -120,6 +126,7 @@ class ncChangeLogEntryFormatter
     return '';
   }
 
+
   /**
    * Used to output the ending HTML code of a list of changes
    *
@@ -130,6 +137,7 @@ class ncChangeLogEntryFormatter
     return '';
   }
 
+
   /**
    * Outputs the html representation of a single operation
    *
@@ -138,14 +146,13 @@ class ncChangeLogEntryFormatter
    */
   protected function formatList($adapter)
   {
-    $format = "%operation% at %date%";
-
     return str_replace(
       array('%operation%', '%date%'),
       array($adapter->renderOperationType(), $adapter->renderCreatedAt()),
-      ncChangeLogUtils::translate($format)
+      ncChangeLogUtils::translate($this->listEntry)
     );
   }
+
 
   /**
    * Outputs the html representation of a single insertion operation
@@ -159,6 +166,7 @@ class ncChangeLogEntryFormatter
     return $this->formatList($adapter);
   }
 
+
   /**
    * Outputs the html representation of a single update operation
    * in a listing
@@ -170,6 +178,7 @@ class ncChangeLogEntryFormatter
   {
     return $this->formatList($adapter);
   }
+
 
   /**
    * Outputs the html representation of a single deletion operation

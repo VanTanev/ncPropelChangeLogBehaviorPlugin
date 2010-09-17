@@ -37,6 +37,12 @@ class ncChangeLogConfigHandler
     return sfConfig::get('app_nc_change_log_behavior_formatter_class', 'ncChangeLogEntryFormatter');
   }
 
+  
+  /**
+   * Returns an instance of the formatter class
+   *
+   * @return ncChangeLogEntryFormatter 
+   */
   static public function getFormatter()
   {
     $formatterClass = self::getFormatterClass();

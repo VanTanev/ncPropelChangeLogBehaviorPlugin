@@ -363,13 +363,14 @@ class ncPropelChangeLogBehavior
       if (!in_array($col_fieldName, $ignored_fields))
       {
         $columnMap = $tableMap->getColumn($column);
-        list ($value_method, $params) = self::extractValueMethod($columnMap);
+        list ($value_method, $params) = ncChangeLogUtils::extractValueMethod($columnMap);
         
         $diff['changes'][$col_fieldName] = array(
           'old'   => $stored_object->$value_method($params),
           'new'   => $object->$value_method($params),
           'field' => $col_fieldName,
           'raw'    => array(
+             // the previous version used toArray for these values, but this is exactly the same
             'old'   => $stored_values->$value_method(),
             'new'   => $object->$value_method(),
           )
@@ -387,37 +388,5 @@ class ncPropelChangeLogBehavior
 
     return true;
   }
-
-
-  
-  /**
-   * Extract the value method and the required parameters for it, for given a ColumnMap's type.
-   * Return an Array holding the value method as first value and its parameters as the second one.
-   *
-   * @param ColumnMap $column
-   * @return Array
-   */
-  static public function extractValueMethod(ColumnMap $column)
-  {
-    $value_method = 'get' . $column->getPhpName();
-    $params = null;
-    
-    if (in_array($column->getType(), array(PropelColumnTypes::BU_DATE, PropelColumnTypes::DATE)))
-    {
-      $params = ncChangeLogConfigHandler::getDateFormat();
-    }
-    elseif (in_array($column->getType(), array(PropelColumnTypes::BU_TIMESTAMP, PropelColumnTypes::TIMESTAMP)))
-    {
-      $params = ncChangeLogConfigHandler::getDateTimeFormat();
-    }
-    elseif ($column->getType() == PropelColumnTypes::TIME)
-    {
-      $params = ncChangeLogConfigHandler::getTimeFormat();
-    }
-
-    return array($value_method, $params);
-  }
-
-
 
 }

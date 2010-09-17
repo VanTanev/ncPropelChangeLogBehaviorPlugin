@@ -37,6 +37,35 @@ class ncChangeLogUtils
 
     // Use a default username.
     return ncChangeLogConfigHandler::getUsernameCli();
-  }  
+  }
+  
+  
+  /**
+   * Extract the value method and the required parameters for it, for given a ColumnMap's type.
+   * Return an Array holding the value method as first value and its parameters as the second one.
+   *
+   * @param ColumnMap $column
+   * @return Array ($value_method, $params)
+   */
+  static public function extractValueMethod(ColumnMap $column)
+  {
+    $value_method = 'get' . $column->getPhpName();
+    $params = null;
+    
+    if (in_array($column->getType(), array(PropelColumnTypes::BU_DATE, PropelColumnTypes::DATE)))
+    {
+      $params = ncChangeLogConfigHandler::getDateFormat();
+    }
+    elseif (in_array($column->getType(), array(PropelColumnTypes::BU_TIMESTAMP, PropelColumnTypes::TIMESTAMP)))
+    {
+      $params = ncChangeLogConfigHandler::getDateTimeFormat();
+    }
+    elseif ($column->getType() == PropelColumnTypes::TIME)
+    {
+      $params = ncChangeLogConfigHandler::getTimeFormat();
+    }
+
+    return array($value_method, $params);
+  }
   
 }

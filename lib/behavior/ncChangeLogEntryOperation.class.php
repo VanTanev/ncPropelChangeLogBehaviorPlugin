@@ -1,5 +1,8 @@
 <?php
 
+/**
+* A class describing the different operation types
+*/
 class ncChangeLogEntryOperation
 {
   const
