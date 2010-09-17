@@ -20,7 +20,7 @@ abstract class ncChangeLogAdapter extends ArrayObject
    *
    * @param ncChangeLogEntry The entry to adapt.
    */
-  public function __construct($entry)
+  public function __construct(ncChangeLogEntry $entry)
   {
     $this->entry    = $entry;
     $this->exchangeArray($this->getChangeLog());
@@ -43,22 +43,22 @@ abstract class ncChangeLogAdapter extends ArrayObject
   /*********************************
    * ArrayAccess interface Methods *
    ********************************/
-  public function offsetGet($name)
+  public function offsetGet($index)
   {
-    if (!$this->offsetExists($name))
+    if (!$this->offsetExists($index))
     {
-      throw new InvalidArgumentException(sprintf('Change "%s" does not exist.', $name));
+      throw new InvalidArgumentException(sprintf('Change "%s" does not exist.', $index));
     }
 
-    return $this->elements[$name];
+    return parent::offsetGet($index);
   }
 
-  public function offsetSet($offset, $value)
+  public function offsetSet($index, $newval)
   {
     throw new LogicException('Cannot update changes.');
   }
 
-  public function offsetUnset($offset)
+  public function offsetUnset($index)
   {
     throw new LogicException('Cannot unset changes.');
   }
@@ -73,13 +73,24 @@ abstract class ncChangeLogAdapter extends ArrayObject
   /**
    * Retrieves the changes
    *
-   * @return mixed The changes
+   * @return array The changes
    */
   public function getChangeLog()
   {
-    return array();
+    if (0 == count($this))
+    {
+      $this->createChangeLog();
+    }
+    
+    return $this->getArrayCopy();
   }
 
+
+  protected function createChangeLog()
+  {
+    $this->exchangeArray($this->getChanges()); 
+  }
+  
 
   /**
    * Retrieves the affected class name.
@@ -118,7 +129,7 @@ abstract class ncChangeLogAdapter extends ArrayObject
    */
   protected function getChanges()
   {
-    return array();
+    return $this->entry->getObjectChanges();
   }
 
   /**
@@ -165,7 +176,10 @@ abstract class ncChangeLogAdapter extends ArrayObject
    *
    * @return String HTML representation of the className.
    */
-  abstract public function renderClassName();
+  public function renderClassName()
+  {
+    return $this->translate($this->getClassName());
+  }
 
 
   /**

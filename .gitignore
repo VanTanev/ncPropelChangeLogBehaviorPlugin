@@ -2,3 +2,6 @@
 base
 om
 map
+test/functional/fixtures/data/sql
+test/functional/fixtures/lib/model
+test/functional/fixtures/plugins
