@@ -14,8 +14,6 @@ $entry->setObjectPK(array(12, 17));
 $entry->setOperationType(ncChangeLogEntryOperation::NC_CHANGE_LOG_ENTRY_OPERATION_UPDATE);
 $entry->setCreatedAt($created_at_time = time());
 $entry->setChangesDetail(array(
-  'pk'    => array(12, 17),
-  'class' => 'TestClass',
   'changes' => array('g_country' => array(
     'old'   => 'ggbg',
     'new'   => 'ggggggggggggggggggggg',
@@ -59,3 +57,38 @@ $t->is($entry->getRawObjectPK(), 20,
   '->setObjectPK() processes scalar values');
 $t->is($entry->getObjectPK(), 20,
   '->getObjectPK() handles scalar values');
+
+  
+/**
+* Test the "get/set/clearObject" methods 
+*/
+$entry = new ncChangeLogEntry();
+$t->isa_ok($entry->getObject(), 'NULL', 
+  '->getObject() returns null on new entry');
+  
+$entry->setObject(BookPeer::doSelectOne(new Criteria()));
+$t->isa_ok($entry->getObject(), 'Book', 
+  '->getObject() retrieves the object set through ->setObject()');
+
+$entry->clearObject();
+$entry->setClassName('');
+$entry->setPrimaryKey(null);
+$t->isa_ok($entry->getObject(), 'NULL', 
+  '->clearObject() removes the instance saved in the entry');
+
+
+
+$entry->setClassName('Book');
+$entry->setObjectPK(BookPeer::doSelectOne(new Criteria())->getId());
+$t->isa_ok($entry->getObject(), 'Book', 
+  '->getObject() can retrive the object from the DB based on a normal PK');
+
+
+$a_a = AuthorArticlePeer::doSelectOne(new Criteria());  
+$entry = new ncChangeLogEntry();
+$entry->setObject($a_a);
+$t->isa_ok($entry->getObject(), 'AuthorArticle',
+  '->getObject() can retrive the object from the DB based on a composite PK');
+
+
+

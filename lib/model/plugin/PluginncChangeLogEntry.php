@@ -2,12 +2,24 @@
 
 class PluginncChangeLogEntry extends BasencChangeLogEntry
 {
+  
+  /** @var BaseObject The object for which this ChangeLog applies */
+  protected $object;
+  
+  
+  public function __toString()
+  {
+    return $this->getOperationString()." at ".$this->getCreatedAt();
+  }
+  
+
   /**
    * Answer whether this entry's opertion_type attribute equals $type_index.
-   * @see ncChangeLogEntryOperation
    * 
-   * @param integer $type_index
-   * @return Boolean
+   * @param     integer $type_index
+   * @return    boolean
+   * 
+   * @see       PluginncChangeLogEntryOperation
    */
   public function isOperation($type_index)
   {
@@ -15,16 +27,10 @@ class PluginncChangeLogEntry extends BasencChangeLogEntry
   }
 
   
-  public function __toString()
-  {
-    return $this->getOperationString()." at ".$this->getCreatedAt();
-  }
-
-  
   /**
    * Answer a string representing this entry's operation.
    *
-   * @return String
+   * @return    string
    */
   public function getOperationString()
   {
@@ -84,20 +90,56 @@ class PluginncChangeLogEntry extends BasencChangeLogEntry
   
   
   /**
+  * Set the object for which this change log applies
+  * 
+  * @param      BaseObject $object
+  * @return     ncChangeLogEntry
+  */
+  public function setObject(BaseObject $object)
+  {
+    $this->object = $object;
+    
+    $this->setClassName(get_class($object));
+    $this->setObjectPK($object->getPrimaryKey());
+    
+    return $this;
+  }
+  
+  
+  /**
    * Try to retrieve this entry's related object.
+   * 
+   * The object is stored as a property, to avoid having to retrieve it again
+   * on subsequent calls to this method
    *
    * @return    BaseObject|null
    */
   public function getObject()
   {
-    $peer_class = $this->getObjectPeerClassName();
-    
-    if (class_exists($peer_class))
+    if (is_null($this->object))
     {
-      return call_user_func_array(array($peer_class, 'retrieveByPK'), is_array($this->getObjectPk()) ? $this->getObjectPk() : array($this->getObjectPk()));
+      $peer_class = $this->getObjectPeerClassName();
+      
+      if (class_exists($peer_class))
+      {
+        $this->object = call_user_func_array(array($peer_class, 'retrieveByPK'), is_array($this->getObjectPk()) ? $this->getObjectPk() : array($this->getObjectPk()));
+      }
     }
-
-    return null;
+    
+    return $this->object;
+  }
+  
+  
+  /**
+  * Sets the local object property to null; Does not modify the DB
+  * 
+  * @return     ncChangeLogEntry
+  */
+  public function clearObject()
+  {
+    $this->object = null;
+    
+    return $this;
   }
 
   
@@ -111,13 +153,14 @@ class PluginncChangeLogEntry extends BasencChangeLogEntry
     return unserialize(base64_decode(parent::getChangesDetail()));
   }
   
+  
   /**
    * Sets the changes dtetal, converting them to base64 encoded string for the DB
    * 
    * @param     array $v
    * @return    ncChangeLogEntry
    */
-  public function setChangesDetail($v)
+  public function setChangesDetail(array $v)
   {
     return parent::setChangesDetail(base64_encode(serialize($v)));
   }
@@ -127,6 +170,8 @@ class PluginncChangeLogEntry extends BasencChangeLogEntry
    * Returns the array of changes
    * 
    * kept for BC
+   * 
+   * @see       PluginncChangeLogEntry::getChangesDetail()
    */
   public function getChangesDetailArray()
   {
@@ -136,11 +181,12 @@ class PluginncChangeLogEntry extends BasencChangeLogEntry
   
   /**
    * Retrieves the changed class name
+   * 
+   * kept for BC
    */
   public function getObjectClassName()
   {
-    $changeLog = $this->getChangesDetail();
-    return $changeLog['class'];
+    return $this->getClassName();
   }
 
   
@@ -149,7 +195,9 @@ class PluginncChangeLogEntry extends BasencChangeLogEntry
    */
   public function getObjectPeerClassName()
   {
-    return constant($this->getObjectClassName().'::PEER');
+    $const = $this->getObjectClassName() . '::PEER';
+    
+    return defined($const) ? constant($const) : null;
   }
 
   
@@ -158,22 +206,27 @@ class PluginncChangeLogEntry extends BasencChangeLogEntry
    */
   public function getObjectTableName()
   {
-    return constant($this->getObjectPeerClassName().'::TABLE_NAME');
+    $const = $this->getObjectClassName() . '::TABLE_NAME';
+    
+    return defined($const) ? constant($const) : null;
   }
 
   
   /**
    * Retrieved the primary key of the changed object
+   * 
+   * kept for BC
    */
   public function getObjectPrimaryKey()
   {
-    $changeLog = $this->getChangesDetail();
-    return $changeLog['pk'];
+    return $this->getObjectPK();
   }
 
   
   /**
    * Retrieve the list of changes as an array with each value equal to an array of ('old' => string, 'new' => string, 'field' => string, 'raw' => array('old'/'new))
+   * 
+   * @return   array
    */
   public function getObjectChanges()
   {
@@ -194,6 +247,7 @@ class PluginncChangeLogEntry extends BasencChangeLogEntry
    *  array(
    *    'related_column_name' => array ( ncChangeLogEntries...)
    *    );
+   * 
    * @return mixed An array of the ncChangeLogEntries of the related columns.
    */
   public function getRelatedTablesChangeLogEntries()

@@ -76,8 +76,6 @@ class ncPropelChangeLogBehavior
         $entry->setObjectPk($object->getPrimaryKey());
 
         $changes = array(
-          'class' => get_class($object),
-          'pk'    => $object->getPrimaryKey(),
           'raw'   => array()
         );
 
@@ -107,8 +105,6 @@ class ncPropelChangeLogBehavior
     $entry->setObjectPk($object->getPrimaryKey());
 
     $changes = array(
-      'class' => get_class($object),
-      'pk'    => $object->getPrimaryKey(),
       'raw'   => array()
     );
 
@@ -354,7 +350,7 @@ class ncPropelChangeLogBehavior
     $ignored_fields = ncChangeLogConfigHandler::getIgnoreFields(get_class($object));
     $tableMap = Propel::getDatabaseMap()->getTable(constant(get_class($object->getPeer()).'::TABLE_NAME'));
 
-    $diff = array('class' => get_class($object), 'pk' => $object->getPrimaryKey(), 'changes' => array());
+    $diff = array('changes' => array());
     
     foreach ($object->getModifiedColumns() as $column)
     {
