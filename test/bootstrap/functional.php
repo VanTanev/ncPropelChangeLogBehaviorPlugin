@@ -4,6 +4,7 @@
 $_SERVER['SYMFONY'] = dirname(__FILE__).'/../../../../lib/vendor/symfony/';
 define('SF_DIR', $_SERVER['SYMFONY']);
 
+require_once SF_DIR . 'test/bootstrap/unit.php';
 
 // we need SQLite for functional tests
 if (!extension_loaded('SQLite') && !extension_loaded('pdo_SQLite'))

@@ -26,7 +26,6 @@ $entry->setChangesDetail(array(
     'new'   => 'ggggggggggggggggggggg',
     'field' => 'g_country',
     'raw'    => array(
-       // the previous version used toArray for these values, but this is exactly the same
       'old'   => 'le_ggbg',
       'new'   => 'le_fffffffffffuuuuuuuu',
     )

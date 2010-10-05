@@ -70,6 +70,7 @@ class ProjectConfiguration extends sfProjectConfiguration
 
     // initialize database
     $sql = file_get_contents(sfConfig::get('sf_data_dir').DIRECTORY_SEPARATOR.'sql'.DIRECTORY_SEPARATOR.'lib.model.schema.sql');
+    $sql .= PHP_EOL . file_get_contents(sfConfig::get('sf_data_dir').DIRECTORY_SEPARATOR.'sql'.DIRECTORY_SEPARATOR.'plugins.ncPropelChangeLogBehaviorPlugin.lib.model.schema.sql');
     $sql = preg_replace('/^\s*\-\-.+$/m', '', $sql);
     $sql = preg_replace('/^\s*DROP TABLE .+?$/m', '', $sql);
     $con = Propel::getConnection();

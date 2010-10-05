@@ -4,5 +4,8 @@ om
 map
 lib/model/ncChangeLogEntryQuery.php
 test/functional/fixtures/data/sql
+test/functional/fixtures/data/database.sqlite
 test/functional/fixtures/lib/model
 test/functional/fixtures/plugins
+test/functional/fixtures/log
+test/functional/fixtures/cache

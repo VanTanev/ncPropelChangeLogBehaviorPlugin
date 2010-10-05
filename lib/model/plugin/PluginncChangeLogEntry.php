@@ -36,10 +36,24 @@ class PluginncChangeLogEntry extends BasencChangeLogEntry
    * Set the object PK (it will be stringified if necessary)
    * 
    * @param     integer|array $v
+   * 
+   * @see       PluginncChangeLogEntry::setRawObjectPK()
    */
   public function setObjectPK($v)
   {
-    $v = is_array($v) ? implode('-', $v) : $v;
+    $v = is_array($v) ? (count($v) > 1 ? implode('-', $v) : array_pop($v)) : $v;
+    return $this->setRawObjectPK($v);
+  }
+  
+  
+  /**
+   * A method to set the RAW object PK value
+   * 
+   * @param     mixed $v
+   * @return    ncChangeLogEntry
+   */
+  public function setRawObjectPK($v)
+  {
     return parent::setObjectPK($v);
   }
   
@@ -48,11 +62,24 @@ class PluginncChangeLogEntry extends BasencChangeLogEntry
    * Get the object PK, as it was originally saved
    * 
    * @return    integer|array
+   * 
+   * @see       PluginncChangeLogEntry::getRawObjectPK()
    */
-  public function getObjectPk()
+  public function getObjectPK()
   {
-    $pk = parent::getObjectPk();
+    $pk = $this->getRawObjectPK();
     return false !== strpos($pk, '-') ? explode('-', $pk) : $pk;
+  }
+  
+  
+  /**
+   * A method to get the RAW object PK value
+   * 
+   * @return    string
+   */
+  public function getRawObjectPK()
+  {
+    return parent::getObjectPK();
   }
   
   

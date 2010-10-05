@@ -14,6 +14,7 @@ classes:
         type:       varchar(50)
         required:   true
         index:      true
+        phpName:    ObjectPK
       changes_detail:
         type:       longvarchar
         required:   true
