@@ -144,13 +144,34 @@ class PluginncChangeLogEntry extends BasencChangeLogEntry
 
   
   /**
+  * A method to set the RAW change detail value
+  * 
+  * @param      mixed $v
+  * @return     ncChangeLogEntry
+  */
+  public function setRawChangesDetail($v)
+  {
+    return parent::setChangesDetail($v);
+  }
+  
+  
+  /**
+  * A method to get the RAW change detail value
+  */
+  public function getRawChangesDetail()
+  {
+    return parent::getChangesDetail();
+  }
+  
+  
+  /**
    * Returns the changes detail, in the original format it was set
    * 
    * @return    array
    */
   public function getChangesDetail()
   {
-    return unserialize(base64_decode(parent::getChangesDetail()));
+    return unserialize(base64_decode($this->getRawChangesDetail()));
   }
   
   
@@ -162,20 +183,7 @@ class PluginncChangeLogEntry extends BasencChangeLogEntry
    */
   public function setChangesDetail(array $v)
   {
-    return parent::setChangesDetail(base64_encode(serialize($v)));
-  }
-  
-  
-  /**
-   * Returns the array of changes
-   * 
-   * kept for BC
-   * 
-   * @see       PluginncChangeLogEntry::getChangesDetail()
-   */
-  public function getChangesDetailArray()
-  {
-    return $this->getChangesDetail();
+    return $this->setRawChangesDetail(base64_encode(serialize($v)));
   }
 
   
