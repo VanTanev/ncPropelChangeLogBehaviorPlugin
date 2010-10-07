@@ -20,4 +20,4 @@ class Book extends BaseBook {
 
 } // Book
 
-//sfPropelBehavior::add('Book', array('changelog'));
+sfPropelBehavior::add('Book', array('changelog'));

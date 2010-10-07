@@ -12,6 +12,24 @@ class PluginncChangeLogEntry extends BasencChangeLogEntry
     return $this->getOperationString()." at ".$this->getCreatedAt();
   }
   
+  
+  /**
+   * Create a new ncChangeLogEntry;
+   * optionally set the related object
+   * 
+   * @param     mixed $object
+   * @return    ncChangeLogEntry
+   */
+  public function __construct($object = null)
+  {
+    if (!is_null($object))
+    {
+      $this->setObject($object);
+    }
+    
+    return parent::__construct(); // just in case we decide to set defaults in the future
+  }
+  
 
   /**
    * Answer whether this entry's opertion_type attribute equals $type_index.
@@ -47,8 +65,7 @@ class PluginncChangeLogEntry extends BasencChangeLogEntry
    */
   public function setObjectPK($v)
   {
-    $v = is_array($v) ? (count($v) > 1 ? implode('-', $v) : array_pop($v)) : $v;
-    return $this->setRawObjectPK($v);
+    return $this->setRawObjectPK(ncChangeLogUtils::normalizePK($v));
   }
   
   
@@ -90,17 +107,20 @@ class PluginncChangeLogEntry extends BasencChangeLogEntry
   
   
   /**
-  * Set the object for which this change log applies
-  * 
-  * @param      BaseObject $object
-  * @return     ncChangeLogEntry
-  */
+   * Set the object for which this change log applies
+   * 
+   * @param     BaseObject $object
+   * @return    ncChangeLogEntry
+   */
   public function setObject(BaseObject $object)
   {
     $this->object = $object;
     
     $this->setClassName(get_class($object));
-    $this->setObjectPK($object->getPrimaryKey());
+    if (!$object->isNew())
+    {
+      $this->setObjectPK($object->getPrimaryKey());
+    }
     
     return $this;
   }
@@ -131,10 +151,10 @@ class PluginncChangeLogEntry extends BasencChangeLogEntry
   
   
   /**
-  * Sets the local object property to null; Does not modify the DB
-  * 
-  * @return     ncChangeLogEntry
-  */
+   * Sets the local object property to null; Does not modify the DB
+   * 
+   * @return    ncChangeLogEntry
+   */
   public function clearObject()
   {
     $this->object = null;
@@ -144,11 +164,11 @@ class PluginncChangeLogEntry extends BasencChangeLogEntry
 
   
   /**
-  * A method to set the RAW change detail value
-  * 
-  * @param      mixed $v
-  * @return     ncChangeLogEntry
-  */
+   * A method to set the RAW change detail value
+   * 
+   * @param     mixed $v
+   * @return    ncChangeLogEntry
+   */
   public function setRawChangesDetail($v)
   {
     return parent::setChangesDetail($v);
@@ -156,8 +176,8 @@ class PluginncChangeLogEntry extends BasencChangeLogEntry
   
   
   /**
-  * A method to get the RAW change detail value
-  */
+   * A method to get the RAW change detail value
+   */
   public function getRawChangesDetail()
   {
     return parent::getChangesDetail();

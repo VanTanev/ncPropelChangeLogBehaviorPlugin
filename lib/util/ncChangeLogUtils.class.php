@@ -2,6 +2,7 @@
   
 class ncChangeLogUtils
 {
+  
   /**
    * Generic translation function
    * 
@@ -22,6 +23,11 @@ class ncChangeLogUtils
   }
   
   
+  /**
+  * Retrieves the active user's name; fallsback to config value if no context exists
+  * 
+  * @return       string
+  */
   public static function getUsername()
   {
     if (sfContext::hasInstance())
@@ -44,8 +50,8 @@ class ncChangeLogUtils
    * Extract the value method and the required parameters for it, for given a ColumnMap's type.
    * Return an Array holding the value method as first value and its parameters as the second one.
    *
-   * @param ColumnMap $column
-   * @return Array ($value_method, $params)
+   * @param       ColumnMap $column
+   * @return      array ($value_method, $params)
    */
   static public function extractValueMethod(ColumnMap $column)
   {
@@ -66,6 +72,22 @@ class ncChangeLogUtils
     }
 
     return array($value_method, $params);
+  }
+  
+  
+  /**
+  * Normalizes primary keys regardless of type
+  * 
+  * 123               => "123"
+  * array(123)        => "123"
+  * array(123, 456)   => "123-456"
+  * 
+  * @param        mixed $primary_key
+  * @return       string
+  */
+  public static function normalizePK($primary_key)
+  {
+    return is_array($primary_key) ? (count($primary_key) > 1 ? implode('-', $primary_key) : array_pop($primary_key)) : $primary_key;
   }
   
 }

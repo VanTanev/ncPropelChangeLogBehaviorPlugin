@@ -4,7 +4,7 @@ $fixtures = 'fixtures/fixtures.yml';
 
 require_once(dirname(__FILE__).'/../../bootstrap/functional.php');
 
-$t = new lime_test();
+$t = new lime_test(14);
 $t->diag('Testing lib/model/plugin/PluginncChangeLogEntry.php');
 
 

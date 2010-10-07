@@ -17,7 +17,15 @@ class ProjectConfiguration extends sfProjectConfiguration
     $this->setPlugins(array('ncPropelChangeLogBehaviorPlugin'));
     $this->setPluginPath('ncPropelChangeLogBehaviorPlugin', dirname(__FILE__).'/../../../..');
     
-    $this->enablePlugins('sfPropelPlugin'); 
+    if (is_dir(dirname(__FILE__).'/../../../../../sfPropel15Plugin'))
+    {
+      $this->enablePlugins('sfPropel15Plugin');
+    }
+    else
+    {
+      $this->enablePlugins('sfPropelPlugin');
+    }
+    
   }
   
   

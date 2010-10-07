@@ -1,0 +1,3 @@
+[submodule "test/functional/fixtures/plugins/sfPropel15Plugin"]
+	path = test/functional/fixtures/plugins/sfPropel15Plugin
+	url = git@github.com:CraftyShadow/sfPropel15Plugin.git

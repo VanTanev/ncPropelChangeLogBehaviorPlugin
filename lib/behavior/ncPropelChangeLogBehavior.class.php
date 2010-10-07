@@ -24,33 +24,28 @@ class ncPropelChangeLogBehavior
    */
   public function preSave(BaseObject $object, $con = null)
   {
-    $entry = new ncChangeLogEntry();
-
-    $entry->setClassName(get_class($object));
-    $entry->setUsername(ncChangeLogUtils::getUsername());
+    $object->changelogEntry = new ncChangeLogEntry($object);
+    
+    $object->changelogEntry->setUsername(ncChangeLogUtils::getUsername());
 
     if ($object->isNew())
     {
-      $entry->setOperationType(ncChangeLogEntryOperation::NC_CHANGE_LOG_ENTRY_OPERATION_INSERTION);
-      $entry->setCreatedAt(time());
+      $object->changelogEntry->setOperationType(ncChangeLogEntryOperation::NC_CHANGE_LOG_ENTRY_OPERATION_INSERTION);
+      $object->changelogEntry->setCreatedAt(time());
       
       if (method_exists($object, 'setCreatedAt'))
       {
-        $object->setCreatedAt($entry->getCreatedAt(null));
+        $object->setCreatedAt($object->changelogEntry->getCreatedAt(null));
       }
     }
     else
     {
-      $entry->setOperationType(ncChangeLogEntryOperation::NC_CHANGE_LOG_ENTRY_OPERATION_UPDATE);
-      $entry->setObjectPk($object->getPrimaryKey());
+      $object->changelogEntry->setOperationType(ncChangeLogEntryOperation::NC_CHANGE_LOG_ENTRY_OPERATION_UPDATE);
 
-      if (!self::_update_changes($object, $entry))
-      {
-        return;
-      }
+      self::_update_changes($object);
     }
-
-    ncChangeLogEntryQueue::getInstance()->push($entry);
+    
+    return true;
   }
   
 
@@ -62,28 +57,24 @@ class ncPropelChangeLogBehavior
    */
   public function postSave(BaseObject $object, $con = null)
   {
-    $entry = ncChangeLogEntryQueue::getInstance()->selectivePop(get_class($object), ncChangeLogEntryOperation::NC_CHANGE_LOG_ENTRY_OPERATION_UPDATE, $object->getPrimaryKey());
-
-    if (!$entry)
+    if (isset($object->changelogEntry) && $object->changelogEntry instanceof ncChangeLogEntry)
     {
-      $entry = ncChangeLogEntryQueue::getInstance()->selectivePop(get_class($object), ncChangeLogEntryOperation::NC_CHANGE_LOG_ENTRY_OPERATION_INSERTION, null, method_exists($object, 'getCreatedAt') ? $object->getCreatedAt(null) : null);
-    }
-
-    if ($entry)
-    {
-      if ($entry->isOperation(ncChangeLogEntryOperation::NC_CHANGE_LOG_ENTRY_OPERATION_INSERTION))
+      if ($object->changelogEntry->isOperation(ncChangeLogEntryOperation::NC_CHANGE_LOG_ENTRY_OPERATION_INSERTION))
       {
-        $entry->setObjectPk($object->getPrimaryKey());
+        $object->changelogEntry->setObjectPk($object->getPrimaryKey());
 
         $changes = array(
           'raw'   => array()
         );
 
-        $entry->setChangesDetail($changes);
+        $object->changelogEntry->setChangesDetail($changes);
       }
 
-      $entry->save($con);
+      $object->changelogEntry->save($con);
+      $object->changelogEntry = null;
     }
+    
+    return true;
   }
   
 
@@ -97,12 +88,10 @@ class ncPropelChangeLogBehavior
    */
   public function postDelete(BaseObject $object, $con = null)
   {
-    $entry = new ncChangeLogEntry();
+    $entry = new ncChangeLogEntry($object);
 
-    $entry->setClassName(get_class($object));
     $entry->setUsername(ncChangeLogUtils::getUsername());
     $entry->setOperationType(ncChangeLogEntryOperation::NC_CHANGE_LOG_ENTRY_OPERATION_DELETION);
-    $entry->setObjectPk($object->getPrimaryKey());
 
     $changes = array(
       'raw'   => array()
@@ -122,45 +111,12 @@ class ncPropelChangeLogBehavior
    * @param PropelPDO $con
    * @return Array of ncChangeLogEntry
    */
-  public function getChangeLog(BaseObject $object, $criteria = null, $con = null, $transformToAdapters = true)
+  public function getChangeLog(BaseObject $object, Criteria $criteria = null, PropelPDO $con = null, $transformToAdapters = true)
   {
-    return self::getChangeLogByPkClassName($object->getPrimaryKey(), get_class($object), $criteria, $con, $transformToAdapters);
+    return ncChangeLogEntryPeer::getChangeLogByPKandClassName($object->getPrimaryKey(), get_class($object), $criteria, $con, $transformToAdapters);
   }
 
-  
-  public static function getChangeLogByPkClassName($primaryKey, $className, $criteria = null, $con = null, $transformToAdapters = true)
-  {
-    if ($criteria instanceof Criteria)
-    {
-      $criteria = clone $criteria;
-    }
-    else
-    {
-      $criteria = new Criteria();
-    }
-    
-    $criteria->add(ncChangeLogEntryPeer::CLASS_NAME, $className);
-    $criteria->add(ncChangeLogEntryPeer::OBJECT_PK, $primaryKey);
 
-    $results = array();
-    $entries = ncChangeLogEntryPeer::doSelect($criteria, $con);
-    
-    if ($transformToAdapters)
-    {
-      foreach ($entries as $entry)
-      {
-        $results[] = $entry->getAdapter();
-      }
-    }
-    else
-    {
-      $results = $entries;
-    }
-    
-    return $results;
-  }
-
-  
   public static function getRelatedAdapters($tables)
   {
     $results  = array();
@@ -222,7 +178,7 @@ class ncPropelChangeLogBehavior
       }
     }
 
-    return $transformToAdapters? self::getRelatedAdapters($relatedChangeLog) : $relatedChangeLog;
+    return $transformToAdapters ? self::getRelatedAdapters($relatedChangeLog) : $relatedChangeLog;
   }
 
   
@@ -271,7 +227,7 @@ class ncPropelChangeLogBehavior
               // Criteria object to fetch every related object.
               if ($relatedClass == get_class($object))
               {
-                $criterion = $criteria->getNewCriterion(constant($class.'::'.$c->getName()), $object->getPrimaryKey());
+                $criterion = $criteria->getNewCriterion(constant($class.'::'.$c->getName()), ncChangeLogUtils::normalizePK($object->getPrimaryKey()));
                 $criteria->addOr($criterion);
               }
             }
@@ -304,7 +260,7 @@ class ncPropelChangeLogBehavior
             }
             else
             {
-              $relatedChangeLog[$tableName][$o->getPrimaryKey()] = $changes;
+              $relatedChangeLog[$tableName][ncChangeLogUtils::normalizePK($o->getPrimaryKey())] = $changes;
             }
           }
         }
@@ -323,7 +279,7 @@ class ncPropelChangeLogBehavior
    */
   public function getChangeLogRoute(BaseObject $object)
   {
-    return '@nc_change_log?class='.get_class($object).'&pk='.$object->getPrimaryKey();
+    return '@nc_change_log?class='.get_class($object).'&pk='.ncChangeLogUtils::normalizePK($object->getPrimaryKey());
   }
 
   
@@ -334,7 +290,7 @@ class ncPropelChangeLogBehavior
    * @param mixed $object
    * @param ncChangeLogEntry $entry
    */
-  protected static function _update_changes(BaseObject $object, ncChangeLogEntry $entry)
+  protected static function _update_changes(BaseObject $object)
   {
     //hack: remove $object from it's Peer's instance pool before diff is computed
     call_user_func(array(get_class($object->getPeer()), 'removeInstanceFromPool'), $object);
@@ -344,6 +300,7 @@ class ncPropelChangeLogBehavior
     if (!$stored_object || !$object->isModified())
     {
       // Unable to retrieve object from database: do nothing
+      $object->changelogEntry = null;
       return false;
     }
 
@@ -377,11 +334,11 @@ class ncPropelChangeLogBehavior
     if (empty($diff['changes']))
     {
       // it's possible that only ignored fields were modified, in which case do nothing
+      $object->changelogEntry = null;
       return false;
     }
 
-    $entry->setChangesDetail($diff);
-
+    $object->changelogEntry->setChangesDetail($diff);
     return true;
   }
 
