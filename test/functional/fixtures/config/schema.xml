@@ -45,7 +45,7 @@
     <column name="name" type="varchar" size="255" />
   </table>
 
-  <table name="author_article">
+  <table name="author_article" isCrossRef="true">
     <behavior name="symfony">
       <parameter name="form" value="false"/>
       <parameter name="filter" value="false"/>

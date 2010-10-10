@@ -19,3 +19,5 @@
 class Article extends BaseArticle {
 
 } // Article
+
+sfPropelBehavior::add('Article', array('changelog'));

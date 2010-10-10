@@ -19,3 +19,5 @@
 class Author extends BaseAuthor {
 
 } // Author
+
+sfPropelBehavior::add('Author', array('changelog'));

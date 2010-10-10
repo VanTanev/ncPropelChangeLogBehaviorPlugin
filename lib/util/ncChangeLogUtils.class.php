@@ -81,12 +81,18 @@ class ncChangeLogUtils
   * 123               => "123"
   * array(123)        => "123"
   * array(123, 456)   => "123-456"
+  * BaseObject $o     => PK
   * 
   * @param        mixed $primary_key
   * @return       string
   */
   public static function normalizePK($primary_key)
   {
+    if ($primary_key instanceof BaseObject)
+    {
+      $primary_key = $primary_key->getPrimaryKey();
+    }
+    
     return is_array($primary_key) ? (count($primary_key) > 1 ? implode('-', $primary_key) : array_pop($primary_key)) : $primary_key;
   }
   

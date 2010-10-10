@@ -19,3 +19,5 @@
 class Category extends BaseCategory {
 
 } // Category
+
+sfPropelBehavior::add('Category', array('changelog'));

@@ -6,5 +6,6 @@ lib/model/ncChangeLogEntryQuery.php
 test/functional/fixtures/data/sql
 test/functional/fixtures/data/database.sqlite
 test/functional/fixtures/plugins/nc*
+test/functional/fixtures/lib/model/*Query*
 test/functional/fixtures/log
 test/functional/fixtures/cache

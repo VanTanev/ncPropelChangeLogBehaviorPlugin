@@ -111,25 +111,9 @@ class ncPropelChangeLogBehavior
    * @param PropelPDO $con
    * @return Array of ncChangeLogEntry
    */
-  public function getChangeLog(BaseObject $object, Criteria $criteria = null, PropelPDO $con = null, $transformToAdapters = true)
+  public function getChangeLog(BaseObject $object, Criteria $criteria = null, $transformToAdapters = true, PropelPDO $con = null)
   {
-    return ncChangeLogEntryPeer::getChangeLogByPKandClassName($object->getPrimaryKey(), get_class($object), $criteria, $con, $transformToAdapters);
-  }
-
-
-  public static function getRelatedAdapters($tables)
-  {
-    $results  = array();
-
-    foreach ($tables as $t => $objects)
-    {
-      foreach ($objects as $f => $object)
-      {
-        $results[$t][$f] = $object->getAdapter();
-      }
-    }
-
-    return $results;
+    return ncChangeLogEntryPeer::getChangeLogByPKandClassName($object->getPrimaryKey(), get_class($object), $criteria, $transformToAdapters, $con);
   }
 
   
@@ -146,45 +130,43 @@ class ncPropelChangeLogBehavior
    *
    * @return Array of ncChangeLogEntry
    */
-  public function get1NRelatedChangeLog(BaseObject $object, $from_date = null, $transformToAdapters = true)
+  public function get1NRelatedChangeLog(BaseObject $object, $from_date = null, $transformToAdapters = true, PropelPDO $con = null)
   {
+    /** @var ColumnMap */ $col;
+    /** @var TableMap  */ $tableMap;
+
     $relatedChangeLog = array();
 
-    if (!is_null($object))
+    $class      = get_class($object);
+    $peer       = constant($class . '::PEER');
+    $tableMap   = call_user_func(array($peer , 'getTableMap'));
+    
+    $criteria   = new Criteria();
+    if (!is_null($from_date))
     {
-      $class      = get_class($object);
-      $peer       = constant($class.'::PEER');
-      $tableMap   = call_user_func(array($peer , 'getTableMap'));
+      $criteria->add(ncChangeLogEntryPeer::CREATED_AT, $from_date, Criteria::GREATER_THAN);
+    }    
 
-      foreach ($tableMap->getColumns() as $c)
+    foreach ($tableMap->getColumns() as $col)
+    {
+      if ($col->isForeignKey())
       {
-        if ($c->isForeignKey())
-        {
-          $method           = 'get'.$c->getPhpName();
-          $relatedTableName = $c->getRelatedTableName();
-          $relatedColName   = $c->getRelatedColumnName();
-          $relatedPeerClass = ncClassFinder::getInstance()->findPeerClassName($relatedTableName);
-          $relatedClass     = ncClassFinder::getInstance()->findClassName($relatedTableName, $relatedPeerClass);
+        $method       = 'get' . $col->getPhpName();
+        $relatedClass = $col->getRelatedTable()->getClassname();
 
-          $criteria = new Criteria();
-          $criteria->add(ncChangeLogEntryPeer::CLASS_NAME, $relatedClass);
-          $criteria->add(ncChangeLogEntryPeer::OBJECT_PK,  $object->$method());
-
-          if (!is_null($from_date))
-            $criteria->add(ncChangeLogEntryPeer::CREATED_AT, $from_date, Criteria::GREATER_THAN);
-
-          $relatedChangeLog[$c->getName()] = ncChangeLogEntryPeer::doSelect($criteria);
-        }
+        $relatedChangeLog[$col->getRelatedTable()->getPhpName()] = ncChangeLogEntryPeer::getChangeLogByPKandClassName($object->$method(), $relatedClass, $criteria, $transformToAdapters, $con);
       }
     }
 
-    return $transformToAdapters ? self::getRelatedAdapters($relatedChangeLog) : $relatedChangeLog;
+    return $relatedChangeLog;
   }
 
   
   /**
    * This methods inspects the columns of the object's table and if one of them if a foreign key,
    * it returns the change log of the referenced object IF it points to the specified object (parameter).
+   * 
+   * This method works only with Propel 1.5 or higher
    *
    * @param mixed $object
    * @param date $from_date
@@ -192,81 +174,91 @@ class ncPropelChangeLogBehavior
    *
    * @return Array of ncChangeLogEntry
    */
-  public function getNNRelatedChangeLog(BaseObject $object, $from_date = null, $transformToAdapters = true)
+  public function getNNRelatedChangeLog(BaseObject $object, $from_date = null, $transformToAdapters = true, PropelPDO $con = null)
   {
-    $relatedChangeLog = array();
-    $relatedObjects   = array();
-
-    if (!is_null($object))
+    if (!defined("RelationMap::MANY_TO_MANY"))
     {
-      // Obtain object's information
-      $object_class = get_class($object);
-      $peer         = constant($object_class.'::PEER');
-
-      // Get all tableMaps and make the queries to retrieve all object instances that reference the object!!!
-      ncClassFinder::getInstance()->reloadClasses();
-
-      foreach (ncClassFinder::getInstance()->getPeerClasses() as $class => $path)
-      {
-        if ($class != get_class($object) && class_exists($class) && method_exists($class, 'getTableMap'))
-        {
-          $criteria = new Criteria();
-          $tableMap = call_user_func(array($class, 'getTableMap'));
-
-          foreach ($tableMap->getColumns() as $c)
-          {
-            if ($c->isForeignKey())
-            {
-              $method           = 'get'.$c->getPhpName();
-              $relatedTableName = $c->getRelatedTableName();
-              $relatedColName   = $c->getRelatedColumnName();
-              $relatedPeerClass = ncClassFinder::getInstance()->findPeerClassName($relatedTableName);
-              $relatedClass     = ncClassFinder::getInstance()->findClassName($relatedTableName, $relatedPeerClass);
-
-              // Traverse all collumns. If any has as its `relatedClass` the class of $object, make a
-              // Criteria object to fetch every related object.
-              if ($relatedClass == get_class($object))
-              {
-                $criterion = $criteria->getNewCriterion(constant($class.'::'.$c->getName()), ncChangeLogUtils::normalizePK($object->getPrimaryKey()));
-                $criteria->addOr($criterion);
-              }
-            }
-          }
-
-          if ($criteria->size() > 0)
-          {
-            $relatedObjects[$class] = call_user_func(array($class, 'doSelect'), $criteria);
-          }
-        }
-      }
-
-      // Get every object's change log
-      foreach ($relatedObjects as $tableName => $objects)
-      {
-        foreach ($objects as $o)
-        {
-          $criteria = new Criteria();
-
-          if (!is_null($from_date))
-          {
-            $criteria->add(ncChangeLogEntryPeer::CREATED_AT, $from_date, Criteria::GREATER_THAN);
-          }
-
-          if (sfMixer::getCallable('Base'.get_class($o).':getChangeLog') && count($changes = $o->getChangeLog($criteria)) > 0)
-          {
-            if (method_exists($o, '__toString'))
-            {
-              $relatedChangeLog[$tableName][strval($o)] = $changes;
-            }
-            else
-            {
-              $relatedChangeLog[$tableName][ncChangeLogUtils::normalizePK($o->getPrimaryKey())] = $changes;
-            }
-          }
-        }
-      }
+      throw new Exception("ncPropelChangeLogBehavior cannot handle M:M relationships unless you are using Propel 1.5 or higher");
     }
     
+    
+    /** @var ColumnMap */  $col;
+    /** @var TableMap  */  $tableMap;
+    /** @var RelationMap*/ $rel;
+
+    $relatedChangeLog = array();
+    $criteria         = new Criteria();
+    
+    $class            = get_class($object);
+    $peer             = constant($class . '::PEER');
+    $tableMap         = call_user_func(array($peer , 'getTableMap'));
+
+    
+    foreach ($tableMap->getRelations() as $rel)
+    {
+      // first we find our M:M relationship
+      if (RelationMap::MANY_TO_MANY == $rel->getType())
+      {
+        $relatedTableMap         = $rel->getLocalTable(); // yeah, it says local table... propel is strange like that ;)
+        $relatedTableObjectClass = $relatedTableMap->getClassname();
+        $relatedTablePeerClass   = constant($relatedTableObjectClass . '::PEER');
+        $relatedTableName        = $relatedTableMap->getPhpName();
+
+        foreach ($tableMap->getRelations() as $relCrossRef)
+        {
+          // next we find the relationship that points to the CrossRef table
+          if (RelationMap::ONE_TO_MANY == $relCrossRef->getType() && false !== strpos($relCrossRef->getName(), $rel->getName()))
+          {
+            /** @var TableMap */
+            $crossRefTableMap    = $relCrossRef->getLocalTable();
+            $crossRefTableName   = $crossRefTableMap->getName();
+            $crossRefObjectClass = $crossRefTableMap->getClassname();
+            $crossRefPeerClass   = constant($crossRefObjectClass . '::PEER');
+            
+            // For now, we won't handle composite relations... it's too much of a pain in the ass
+            if (!$relCrossRef->isComposite())
+            { 
+              /** @var ColumnMap */
+              $crossRefColumnLocal   = array_pop($relCrossRef->getLocalColumns());
+              /** @var ColumnMap */
+              $crossRefColumnForeign = array_pop($crossRefTableMap->getRelation($rel->getName())->getLocalColumns());
+              //$crossRefColumnForeign = array_pop($relCrossRef->getForeignColumns());
+              
+              $criteria->clear();
+              $criteria->add($crossRefColumnLocal->getFullyQualifiedName(), ncChangeLogUtils::normalizePK($object));
+              $criteria->addSelectColumn($crossRefColumnForeign->getFullyQualifiedName());
+              $relatedTablePKs = call_user_func(array($crossRefPeerClass, 'doSelectStmt'), $criteria)->fetchAll(PDO::FETCH_COLUMN, 0);
+              
+              $criteria->clear();
+              $criteria->add($crossRefColumnForeign->getRelatedName(), $relatedTablePKs, Criteria::IN);
+              $relatedObjects = call_user_func(array($relatedTablePeerClass, 'doSelect'), $criteria);
+              
+              $criteria->clear();
+              if (!is_null($from_date))
+              {
+                $criteria->add(ncChangeLogEntryPeer::CREATED_AT, $from_date, Criteria::GREATER_THAN);
+              }
+              
+              foreach ($relatedObjects as $relatedObject)
+              {
+                if (method_exists($relatedObject, '__toString'))
+                {
+                  $changelogKey = $relatedObject->__toString();
+                }
+                else
+                {
+                  $changelogKey = ncChangeLogUtils::normalizePK($relatedObject);
+                }
+                
+                $relatedChangeLog[$relatedTableName][$changelogKey] = ncChangeLogEntryPeer::getChangeLogByPKandClassName($relatedObject->getPrimaryKey(), $relatedTableObjectClass, $criteria, $transformToAdapters, $con);;
+              }
+              
+            } // if ($crossRefRel ! isComposite)
+          } // if ($crossRefRel is ONE_TO_MANY)
+        } // foreach ($relCrossRef)
+      } // if ($rel is MANY_TO_MANY)
+    } // foreach ($relations)
+
     return $relatedChangeLog;
   }
 
@@ -279,7 +271,7 @@ class ncPropelChangeLogBehavior
    */
   public function getChangeLogRoute(BaseObject $object)
   {
-    return '@nc_change_log?class='.get_class($object).'&pk='.ncChangeLogUtils::normalizePK($object->getPrimaryKey());
+    return '@nc_change_log?class='.get_class($object).'&pk='.ncChangeLogUtils::normalizePK($object);
   }
 
   
@@ -324,7 +316,7 @@ class ncPropelChangeLogBehavior
           'field' => $col_fieldName,
           'raw'    => array(
              // the previous version used toArray for these values, but this is exactly the same
-            'old'   => $stored_values->$value_method(),
+            'old'   => $stored_object->$value_method(),
             'new'   => $object->$value_method(),
           )
         );
