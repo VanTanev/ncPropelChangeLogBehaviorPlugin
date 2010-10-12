@@ -13,6 +13,8 @@ class PluginncChangeLogEntryPeer extends BasencChangeLogEntryPeer
   * @param mixed $from_date
   * @param mixed $to_date
   * @param PropelPDO $con
+  * 
+  * @see PluginncChangeLogEntryPeer::getChangeLogByPKandClassName()
   */
   public static function getChangeLogOfObject($class_name, $primary_key, $from_date = null, $to_date = null, PropelPDO $con = null)
   {
@@ -25,6 +27,20 @@ class PluginncChangeLogEntryPeer extends BasencChangeLogEntryPeer
   }
   
   
+  /**
+  * Retrieve all changes for a particular Propel Object by its PK and Class name
+  * 
+  * You can filter the results by criteria; Result is array of ncChangeLogAdapter-s, 
+  * set $transformToAdapters to false to receive array of ncChangeLofEntry objects
+  * 
+  * @param mixed $primary_key Integer, array or a Propel object
+  * @param mixed $class_name The class name of the object
+  * @param Criteria $criteria
+  * @param boolean $transformToAdapters
+  * @param PropelPDO $con
+  * 
+  * @return ncChangeLogEntry|ncChangeLogAdapter
+  */
   public static function getChangeLogByPKandClassName($primary_key, $class_name, Criteria $criteria = null, $transformToAdapters = true, PropelPDO $con = null)
   {
     if ($criteria instanceof Criteria)
@@ -58,7 +74,25 @@ class PluginncChangeLogEntryPeer extends BasencChangeLogEntryPeer
   }
   
   
-  
-  
+  /**
+  * Retrieves the latest change log entry for a particular object
+  * 
+  * @param BaseObject $object
+  * @param boolean $transformToAdapter
+  * @param PropelPDO $con
+  * 
+  * @return ncChangeLogEntry|ncChangeLogAdapter
+  */
+  public static function getLatestChangeLogEntryForObject(BaseObject $object, $transformToAdapter, PropelPDO $con = null)
+  {
+    $c = new Criteria();
+    $c->add(self::CLASS_NAME, get_class($object));
+    $c->add(self::OBJECT_PK,  ncChangeLogUtils::normalizePK($object));
+    $c->addDescendingOrderByColumn(self::CREATED_AT);
+    
+    $entry = ncChangeLogEntryPeer::doSelectOne($c, $con);
+    
+    return $entry ? ($transformToAdapter ? $entry->getAdapter() : $entry) : null;
+  }
     
 }

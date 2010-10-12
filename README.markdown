@@ -176,7 +176,7 @@ The subject is the Propel object handled by the behavior, and the value to be fi
           'field' => # the name of the field, to be used for display
           'old'   => # old value of the field
           'new'   => # new value of the field
-          'raw'    => array(
+          'raw'   => array(
             'old'   => # raw old value
             'new'   => # raw new value
           )

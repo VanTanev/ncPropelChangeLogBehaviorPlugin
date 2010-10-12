@@ -11,6 +11,9 @@
  */
 class ncPropelChangeLogBehavior
 {
+  
+# ---- HOOKS  
+  
   /**
    * Before an $object is saved, determine the changes that have been made to it (if it had already been saved),
    * generate an ncChangeLogEntry an queue it so it can be committed *after* the object has been saved to the database.
@@ -101,6 +104,9 @@ class ncPropelChangeLogBehavior
     $entry->save($con);
   }
 
+  
+# ---- PUBLIC API
+  
   
   /**
    * Get $object's ChangeLog and return it as an array of ncChangeLogAdapters.
@@ -303,13 +309,26 @@ class ncPropelChangeLogBehavior
   }
 
 
+  /**
+  * Retrieve the latest change log entry for this object
+  * 
+  * @param BaseObject $object
+  * @param boolean $transformToAdapter
+  * @param PropelPDO $con
+  * 
+  * @return ncChangeLogEntry|ncChangeLogAdapter
+  */
+  public function getLatestChangeLogEntry(BaseObject $object, $transformToAdapter = true, PropelPDO $con = null)
+  {
+    return ncChangeLogEntryPeer::getLatestChangeLogEntryForObject($object, $transformToAdapter, $con);
+  }
   
-## -- UTILITY METHODS
-
-   /** @var sfEventDispatcher */
-   protected static $dispatcher;
-
   
+# ---- UTILITY METHODS
+
+
+  /** @var sfEventDispatcher */
+  protected static $dispatcher;
   
   /**
    * Inspect the changes made to $object since its last version (the one stored in the database).
@@ -362,10 +381,11 @@ class ncPropelChangeLogBehavior
     }
     
     // Filter the changes event; can be used to add custom fields or whatever
-    if (!is_null($this->getEventDispatcher()))
+    
+    if (!is_null(self::getEventDispatcher()))
     {
       $event = new sfEvent($object, $tableMap->getName() . '.nc_filter_changes');
-      $this->getEventDispatcher()->filter($event, $diff);
+      self::getEventDispatcher()->filter($event, $diff);
       
       $diff = $event->getReturnValue();
     }
@@ -382,7 +402,12 @@ class ncPropelChangeLogBehavior
   }
   
   
-  protected function getEventDispatcher()
+  /**
+   * Tries to get the event dispatcher; returns null if not successfull
+   * 
+   * @return sfEventDispatcher
+   */
+  protected static function getEventDispatcher()
   {
     if (is_null(self::$dispatcher) && sfContext::hasInstance())
     {
@@ -391,14 +416,6 @@ class ncPropelChangeLogBehavior
     
     return self::$dispatcher;
   }
-  
-  
-  protected function fireEvent(sfEvent $event, $method)
-  {
-    if (!is_null($this->getEventDispatcher()))
-    {
-      $this->getEventDispatcher()->fi
-    }
-  }
+
   
 }
