@@ -18,6 +18,13 @@ class ncChangeLogUpdateChange
     $this->newValue   = $newValue;
     $this->adapter    = $updateAdapter;
   }
+  
+  
+  public function __toString()
+  {
+    return $this->render();
+  }
+  
 
   /**
    * Returns a propel column type or null if cannot fetch it. 
@@ -100,12 +107,13 @@ class ncChangeLogUpdateChange
     {
       $peerClassName = constant($this->adapter->getClassName().'::PEER');
       $tableMap = call_user_func(array($peerClassName , 'getTableMap'));
+      $tableMap->buildRelations();
       $column = $tableMap->getColumn($this->getFieldName());
-      $relatedTableName     = $column->getRelatedTableName();
-      $relatedPeerClassName = ncClassFinder::getInstance()->findPeerClassName($relatedTableName);
-      if (!is_null($relatedPeerClassName) && class_exists($relatedPeerClassName))
+      $relatedObjectClass     = $column->getRelatedTable()->getClassname();
+      $relatedObjectPeerClass = constant($relatedObjectClass . '::PEER');
+      if (!is_null($relatedObjectPeerClass) && class_exists($relatedObjectPeerClass))
       {
-        $object = call_user_func(array($relatedPeerClassName, 'retrieveByPk'), $value);
+        $object = call_user_func(array($relatedObjectPeerClass, 'retrieveByPk'), $value);
         if (!is_null($object) && method_exists($object, $method))
         {
           return $object->$method();

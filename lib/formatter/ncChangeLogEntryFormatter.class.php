@@ -64,9 +64,9 @@ class ncChangeLogEntryFormatter
    * @param ncChangeLogAdapter
    * @return String HTML representation of an Update
    */
-  public function formatUpdate(ncChangeLogAdapter $adapter)
+  public function formatUpdate(ncChangeLogAdapter $adapter, $separator = PHP_EOL)
   {
-    return implode(PHP_EOL, array_walk($adapter->getArrayCopy(), create_function('$ncChangeLogUpdateChange', 'return $ncChangeLogUpdateChange->render()')));
+    return implode($separator, array_map(create_function('$ncChangeLogUpdateChange', 'return $ncChangeLogUpdateChange->render();'), $adapter->getArrayCopy()));
   }
 
 

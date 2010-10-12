@@ -25,6 +25,12 @@ abstract class ncChangeLogAdapter extends ArrayObject
     $this->entry    = $entry;
     $this->exchangeArray($this->getChangeLog());
   }
+  
+  
+  public function __toString()
+  {
+    return $this->render();
+  }
 
   
   /**
@@ -62,8 +68,6 @@ abstract class ncChangeLogAdapter extends ArrayObject
   {
     throw new LogicException('Cannot unset changes.');
   }
-
-
 
 
   /************************
@@ -186,11 +190,13 @@ abstract class ncChangeLogAdapter extends ArrayObject
    * Retrieves the formatted date of the ChangeLogEntry
    * It may transform the created at value (eg. translation)
    *
+   * @param string The format for the date; defaults to datetime format
+   * 
    * @return String HTML representation of the date
    */
-  public function renderCreatedAt()
+  public function renderCreatedAt($format = null)
   {
-    return $this->entry->getCreatedAt(ncChangeLogConfigHandler::getDateTimeFormat());
+    return $this->entry->getCreatedAt(is_null($format) ? ncChangeLogConfigHandler::getDateTimeFormat() : $format);
   }
 
   
@@ -204,16 +210,17 @@ abstract class ncChangeLogAdapter extends ArrayObject
     return $this->entry->getUsername();
   }
 
+
   /**
    * Retrieves the formatted operation name of the ChangeLogEntry
    *
    * @return String HTML representation of operation name
    */
-
   public function renderOperationType()
   {
     return ncChangeLogUtils::translate(ncChangeLogEntryOperation::getStringFor($this->entry->getOperationType()));
   }
+  
 
   /**
    * Retrieves the HTML representation of the changes
@@ -221,6 +228,7 @@ abstract class ncChangeLogAdapter extends ArrayObject
    * @return String HTML representation of the changes.
    */
   abstract public function render();
+  
 
   /**
    * Retrieves the HTML representation

@@ -14,7 +14,7 @@ class ncChangeLogConfigHandler
   
   static public function getDateTimeFormat()
   {
-    return sfConfig::get("app_nc_change_log_behavior_date_format", 'Y/m/d H:i:s');
+    return sfConfig::get("app_nc_change_log_behavior_date_time_format", 'Y/m/d H:i:s');
   }
 
   static public function getDateFormat()
@@ -24,7 +24,7 @@ class ncChangeLogConfigHandler
 
   static public function getTimeFormat()
   {
-    return sfConfig::get("app_nc_change_log_behavior_date_format", 'H:i:s');
+    return sfConfig::get("app_nc_change_log_behavior_time_format", 'H:i:s');
   }
 
   static public function isI18NActive()

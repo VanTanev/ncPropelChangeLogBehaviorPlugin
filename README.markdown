@@ -77,21 +77,19 @@ The following code shows the keys used, along with the default values:
     all:
       nc_change_log_behavior:
         ## sfUser attribute used when obtaining the 'username' of the person performing the changes.
-        username_method:          getUsername
+        username_method:              getUsername
         ## 'username' value used when running a task from cli that registers changes in the model.
-        username_cli:             cli
+        username_cli:                 cli
         ## ncChangeLogEntryFormatter child class used when formatting the text
-        formatter_class:          ncChangeLogEntryFormatter
+        formatter_class:              ncChangeLogEntryFormatter
         ## try to get foreign values
-        get_foreign_values:       false
+        get_foreign_values:           false
         ## Instance method used when trying to translate the class name for an object. This method may not exist.
-        translation_object_method: getHumanName
+        translation_object_method:    getHumanName
         ## Instance method used when trying to translate a field name for an object. This method may not exist.
-        translation_field_method: translateField
+        translation_field_method:     translateField
         ## If this is set to true, the messages will be translated using the catalogue app_name/i18n/tables/table_name. Only valid when using the default translation methods.
-        translation_use_i18n:     false
-        ## This is the format of the date
-        app_nc_change_log_behavior_date_format: 'Y/m/d H:i:s'
+        translation_use_i18n:         false
         ## the date format
         date_format:                  'Y/m/d'
         ## the date time format

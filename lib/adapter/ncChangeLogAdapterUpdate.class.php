@@ -7,9 +7,9 @@ class ncChangeLogAdapterUpdate extends ncChangeLogAdapter
   {
     $changeLog = array();
     
-    foreach ($this->getChanges() as $value)
+    foreach ($this->getChanges() as $field_name => $value)
     {
-      $changeLog[$value['field']] = new ncChangeLogUpdateChange($value['field'], $value['old'], $value['new'], $this);
+      $changeLog[$field_name] = new ncChangeLogUpdateChange($value['field'], $value['old'], $value['new'], $this);
     }
     
     $this->exchangeArray($changeLog); 
