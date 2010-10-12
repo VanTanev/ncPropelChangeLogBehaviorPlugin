@@ -136,7 +136,7 @@ class ncPropelChangeLogBehavior
    * @see ncPreopelChangelogBehavior::get1NRelatedChangeLog()
    * @see ncPreopelChangelogBehavior::getNNRelatedChangeLog()
    */
-  public function getRelatedChangelog(BaseObject $object, $from_date = null, $transformToAdapters = true, PropelPDO $con = null)
+  public function getRelatedChangeLog(BaseObject $object, $from_date = null, $transformToAdapters = true, PropelPDO $con = null)
   {
     $changelog_1N = self::get1NRelatedChangeLog($object, $from_date, $transformToAdapters, $con);
 
@@ -175,6 +175,8 @@ class ncPropelChangeLogBehavior
     $class      = get_class($object);
     $peer       = constant($class . '::PEER');
     $tableMap   = call_user_func(array($peer , 'getTableMap'));
+    // we need to build the relations, otherwize the related TableMap object might not have been autoloaded
+    $tableMap->buildRelations();
     
     $criteria   = new Criteria();
     if (!is_null($from_date))
@@ -188,8 +190,13 @@ class ncPropelChangeLogBehavior
       {
         $method       = 'get' . $col->getPhpName();
         $relatedClass = $col->getRelatedTable()->getClassname();
-
-        $relatedChangeLog[$col->getRelatedTable()->getPhpName()] = ncChangeLogEntryPeer::getChangeLogByPKandClassName($object->$method(), $relatedClass, $criteria, $transformToAdapters, $con);
+        
+        $changelog = ncChangeLogEntryPeer::getChangeLogByPKandClassName($object->$method(), $relatedClass, $criteria, $transformToAdapters, $con);
+        
+        if (!empty($changelog))
+        {
+          $relatedChangeLog[$col->getRelatedTable()->getPhpName()] = $changelog;
+        }
       }
     }
 
@@ -250,13 +257,16 @@ class ncPropelChangeLogBehavior
             $crossRefObjectClass = $crossRefTableMap->getClassname();
             $crossRefPeerClass   = constant($crossRefObjectClass . '::PEER');
             
+            $localColumns = $relCrossRef->getLocalColumns();
+            $foreignColumns = $crossRefTableMap->getRelation($rel->getName())->getLocalColumns();
+            
             // For now, we won't handle composite relations... it's too much of a pain in the ass
             if (!$relCrossRef->isComposite())
             { 
               /** @var ColumnMap */
-              $crossRefColumnLocal   = array_pop($relCrossRef->getLocalColumns());
+              $crossRefColumnLocal   = array_pop($localColumns);
               /** @var ColumnMap */
-              $crossRefColumnForeign = array_pop($crossRefTableMap->getRelation($rel->getName())->getLocalColumns());
+              $crossRefColumnForeign = array_pop($foreignColumns);
               
               $criteria->clear();
               $criteria->add($crossRefColumnLocal->getFullyQualifiedName(), ncChangeLogUtils::normalizePK($object));
@@ -284,7 +294,12 @@ class ncPropelChangeLogBehavior
                   $changelogKey = ncChangeLogUtils::normalizePK($relatedObject);
                 }
                 
-                $relatedChangeLog[$relatedTableName][$changelogKey] = ncChangeLogEntryPeer::getChangeLogByPKandClassName($relatedObject->getPrimaryKey(), $relatedTableObjectClass, $criteria, $transformToAdapters, $con);;
+                $changelog = ncChangeLogEntryPeer::getChangeLogByPKandClassName($relatedObject->getPrimaryKey(), $relatedTableObjectClass, $criteria, $transformToAdapters, $con);
+                
+                if (!empty($changelog))
+                {
+                  $relatedChangeLog[$relatedTableName][$changelogKey] = $changelog;
+                }
               }
               
             } // if ($crossRefRel ! isComposite)
