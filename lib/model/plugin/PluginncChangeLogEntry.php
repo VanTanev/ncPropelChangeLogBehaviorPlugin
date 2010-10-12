@@ -201,7 +201,7 @@ class PluginncChangeLogEntry extends BasencChangeLogEntry
    * @param     array $v
    * @return    ncChangeLogEntry
    */
-  public function setChangesDetail(array $v)
+  public function setChangesDetail($v)
   {
     return $this->setRawChangesDetail(base64_encode(serialize($v)));
   }
@@ -234,7 +234,7 @@ class PluginncChangeLogEntry extends BasencChangeLogEntry
    */
   public function getObjectTableName()
   {
-    $const = $this->getObjectClassName() . '::TABLE_NAME';
+    $const = $this->getObjectPeerClassName() . '::TABLE_NAME';
     
     return defined($const) ? constant($const) : null;
   }

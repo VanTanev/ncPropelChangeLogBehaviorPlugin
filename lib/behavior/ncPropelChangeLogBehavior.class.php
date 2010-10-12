@@ -106,7 +106,7 @@ class ncPropelChangeLogBehavior
    * Get $object's ChangeLog and return it as an array of ncChangeLogAdapters.
    * If no entry is found, answer an empty Array.
    * 
-   * @param mixed $object
+   * @param BaseObject $object
    * @param Criteria $criteria
    * @param PropelPDO $con
    * @return Array of ncChangeLogEntry
@@ -114,6 +114,34 @@ class ncPropelChangeLogBehavior
   public function getChangeLog(BaseObject $object, Criteria $criteria = null, $transformToAdapters = true, PropelPDO $con = null)
   {
     return ncChangeLogEntryPeer::getChangeLogByPKandClassName($object->getPrimaryKey(), get_class($object), $criteria, $transformToAdapters, $con);
+  }
+  
+  
+  /**
+   * Returns a combination of the 1N and NN related changelogs, if present.
+   * 
+   * @param BaseObject $object
+   * @param mixed $from_date
+   * @param boolean $transformToAdapters
+   * @param PropelPDO $con
+   * 
+   * @return Array of ncChangeLogEntry
+   * 
+   * @see ncPreopelChangelogBehavior::get1NRelatedChangeLog()
+   * @see ncPreopelChangelogBehavior::getNNRelatedChangeLog()
+   */
+  public function getRelatedChangelog(BaseObject $object, $from_date = null, $transformToAdapters = true, PropelPDO $con = null)
+  {
+    $changelog_1N = self::get1NRelatedChangeLog($object, $from_date, $transformToAdapters, $con);
+
+    try {
+      $changelog_NN = self::getNNRelatedChangeLog($object, $from_date, $transformToAdapters, $con);
+    } catch (Exception $x) {
+      // we are not in Propel 1.5
+      $changelog_NN = array();
+    }
+    
+    return array_merge($changelog_1N, $changelog_NN);
   }
 
   
@@ -124,9 +152,10 @@ class ncPropelChangeLogBehavior
    * This methods inspects the columns of the object's table and if one of them is a foreign key,
    * it returns the change log of the referenced object.
    *
-   * @param mixed $object
-   * @param date $from_date
-   * @param transformToAdapters
+   * @param BaseObject $object
+   * @param mixed $from_date
+   * @param boolean $transformToAdapters
+   * @param PropelPDO $con
    *
    * @return Array of ncChangeLogEntry
    */
@@ -222,7 +251,6 @@ class ncPropelChangeLogBehavior
               $crossRefColumnLocal   = array_pop($relCrossRef->getLocalColumns());
               /** @var ColumnMap */
               $crossRefColumnForeign = array_pop($crossRefTableMap->getRelation($rel->getName())->getLocalColumns());
-              //$crossRefColumnForeign = array_pop($relCrossRef->getForeignColumns());
               
               $criteria->clear();
               $criteria->add($crossRefColumnLocal->getFullyQualifiedName(), ncChangeLogUtils::normalizePK($object));
@@ -274,6 +302,14 @@ class ncPropelChangeLogBehavior
     return '@nc_change_log?class='.get_class($object).'&pk='.ncChangeLogUtils::normalizePK($object);
   }
 
+
+  
+## -- UTILITY METHODS
+
+   /** @var sfEventDispatcher */
+   protected static $dispatcher;
+
+  
   
   /**
    * Inspect the changes made to $object since its last version (the one stored in the database).
@@ -284,10 +320,12 @@ class ncPropelChangeLogBehavior
    */
   protected static function _update_changes(BaseObject $object)
   {
-    //hack: remove $object from it's Peer's instance pool before diff is computed
-    call_user_func(array(get_class($object->getPeer()), 'removeInstanceFromPool'), $object);
+    $objectPeerClass = constant(get_class($object) . '::PEER');
+    
+    // hack: remove $object from it's Peer's instance pool before diff is computed
+    call_user_func(array($objectPeerClass, 'removeInstanceFromPool'), $object);
 
-    $stored_object = call_user_func_array(array(get_class($object->getPeer()), 'retrieveByPK'), is_array($object->getPrimaryKey()) ? $object->getPrimaryKey() : array($object->getPrimaryKey()));
+    $stored_object = call_user_func_array(array($objectPeerClass, 'retrieveByPK'), is_array($object->getPrimaryKey()) ? $object->getPrimaryKey() : array($object->getPrimaryKey()));
  
     if (!$stored_object || !$object->isModified())
     {
@@ -297,7 +335,7 @@ class ncPropelChangeLogBehavior
     }
 
     $ignored_fields = ncChangeLogConfigHandler::getIgnoreFields(get_class($object));
-    $tableMap = Propel::getDatabaseMap()->getTable(constant(get_class($object->getPeer()).'::TABLE_NAME'));
+    $tableMap = Propel::getDatabaseMap()->getTable(constant($objectPeerClass.'::TABLE_NAME'));
 
     $diff = array('changes' => array());
     
@@ -322,6 +360,15 @@ class ncPropelChangeLogBehavior
         );
       }
     }
+    
+    // Filter the changes event; can be used to add custom fields or whatever
+    if (!is_null($this->getEventDispatcher()))
+    {
+      $event = new sfEvent($object, $tableMap->getName() . '.nc_filter_changes');
+      $this->getEventDispatcher()->filter($event, $diff);
+      
+      $diff = $event->getReturnValue();
+    }
 
     if (empty($diff['changes']))
     {
@@ -333,5 +380,25 @@ class ncPropelChangeLogBehavior
     $object->changelogEntry->setChangesDetail($diff);
     return true;
   }
-
+  
+  
+  protected function getEventDispatcher()
+  {
+    if (is_null(self::$dispatcher) && sfContext::hasInstance())
+    {
+      self::$dispatcher = sfContext::getInstance()->getEventDispatcher();
+    }
+    
+    return self::$dispatcher;
+  }
+  
+  
+  protected function fireEvent(sfEvent $event, $method)
+  {
+    if (!is_null($this->getEventDispatcher()))
+    {
+      $this->getEventDispatcher()->fi
+    }
+  }
+  
 }

@@ -122,7 +122,7 @@ See the ncChangeLogEntryFormatter class for further information.
 
 Fields formatting
 -----------------
-Whenever a field is rendered, a filter event is emitted, with name "table_name.field_name" and the value of the field as a the parameter. This is very useful when rendering primary keys or constants. Example use:
+Whenever a field is rendered, a filter event is fired, with name "*TABLE_NAME*.render_*FIELD_NAME*" and the value of the field as a the parameter. This is very useful when rendering primary keys or constants. Example use:
 
 We have a table named 'summary' that has an integer field named 'current_state'.
 
@@ -160,6 +160,29 @@ Now in the "Summary" model class we associate the integer value with a string.
     }
 
 If you intend to return html or javascript code, you should enable the "escape_values" option in *app.yml*.
+
+
+Changelog filtering
+-------------------
+
+The behavior provides an event to filter the changelog before it is saved. 
+The name of the event is "*TABLE_NAME*.nc_filter_changes". 
+The subject is the Propel object handled by the behavior, and the value to be filtered is the following array:
+
+    [php]
+    array(
+      'changes' => array(
+        'fieldName' => array(
+          'field' => # the name of the field, to be used for display
+          'old'   => # old value of the field
+          'new'   => # new value of the field
+          'raw'    => array(
+            'old'   => # raw old value
+            'new'   => # raw new value
+          )
+        )
+      )
+    );
 
 
 Foreign keys <- Experimental ->

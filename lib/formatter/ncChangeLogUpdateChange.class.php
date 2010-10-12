@@ -2,12 +2,13 @@
 
 class ncChangeLogUpdateChange
 {
+  /** @var ncChangeLogAdapter */
+  public $adapter;
+  
   public
     $fieldName,
     $oldValue,
-    $adapter,
     $newValue;
-
   
 
   public function __construct($fieldName, $oldValue, $newValue, $updateAdapter)
