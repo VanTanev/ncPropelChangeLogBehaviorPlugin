@@ -5,16 +5,25 @@
 */
 class ncChangeLogEntryOperation
 {
+  // shorthands!
+  const
+    INSERTION = 1,
+    UPDATE    = 2,
+    DELETION  = 3,
+    CUSTOM    = 4;
+
   const
     NC_CHANGE_LOG_ENTRY_OPERATION_INSERTION = 1,
     NC_CHANGE_LOG_ENTRY_OPERATION_UPDATE    = 2,
-    NC_CHANGE_LOG_ENTRY_OPERATION_DELETION  = 3;
+    NC_CHANGE_LOG_ENTRY_OPERATION_DELETION  = 3,
+    NC_CHANGE_LOG_ENTRY_OPERATION_CUSTOM    = 4;
 
   protected static
     $_types = array(
       self::NC_CHANGE_LOG_ENTRY_OPERATION_INSERTION => 'Insertion',
       self::NC_CHANGE_LOG_ENTRY_OPERATION_UPDATE    => 'Update',
-      self::NC_CHANGE_LOG_ENTRY_OPERATION_DELETION  => 'Deletion'
+      self::NC_CHANGE_LOG_ENTRY_OPERATION_DELETION  => 'Deletion',
+      self::NC_CHANGE_LOG_ENTRY_OPERATION_CUSTOM    => 'Custom',
     );
 
   public static function getTypes()

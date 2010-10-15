@@ -74,7 +74,7 @@ class ncPropelChangeLogBehavior
       }
 
       $object->changelogEntry->save($con);
-      $object->changelogEntry = null;
+      $object->changelogEntry->clearObject();
     }
     
     return true;
@@ -347,12 +347,15 @@ class ncPropelChangeLogBehavior
   
   /**
    * Inspect the changes made to $object since its last version (the one stored in the database).
-   * Update $entry's changes_detail to reflect the changes made.
+   * 
+   * The new ncChangeLogEntry is set as a property of the $object, 
+   * simply named "changelogEntry" and is publicly available
    *
    * @param mixed $object
-   * @param ncChangeLogEntry $entry
+   * 
+   * @return ncChangeLogEntry
    */
-  protected static function _update_changes(BaseObject $object)
+  public static function _update_changes(BaseObject $object)
   {
     $objectPeerClass = constant(get_class($object) . '::PEER');
     
@@ -366,6 +369,12 @@ class ncPropelChangeLogBehavior
       // Unable to retrieve object from database: do nothing
       $object->changelogEntry = null;
       return false;
+    }
+    
+    if ( ! isset($object->changelogEntry) || ! $object->changelogEntry instanceof ncChangeLogEntry)
+    {
+      // the object must have a changelogEntry property
+      $object->changelogEntry = new ncChangeLogEntry($object);
     }
 
     $ignored_fields = ncChangeLogConfigHandler::getIgnoreFields(get_class($object));
@@ -396,8 +405,7 @@ class ncPropelChangeLogBehavior
     }
     
     // Filter the changes event; can be used to add custom fields or whatever
-    
-    if (!is_null(self::getEventDispatcher()))
+    if ( self::getEventDispatcher() )
     {
       $event = new sfEvent($object, $tableMap->getName() . '.nc_filter_changes');
       self::getEventDispatcher()->filter($event, $diff);
@@ -413,7 +421,8 @@ class ncPropelChangeLogBehavior
     }
 
     $object->changelogEntry->setChangesDetail($diff);
-    return true;
+    
+    return $object->changelogEntry;
   }
   
   
