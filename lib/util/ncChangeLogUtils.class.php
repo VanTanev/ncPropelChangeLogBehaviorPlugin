@@ -2,6 +2,8 @@
   
 class ncChangeLogUtils
 {
+  /** @var sfEventDispatcher */
+  private static $dispatcher;
   
   /**
    * Generic translation function
@@ -15,8 +17,7 @@ class ncChangeLogUtils
   {
     if (ncChangeLogConfigHandler::isI18NActive() && sfContext::hasInstance())
     {
-      sfContext::getInstance()->getConfiguration()->loadHelpers('I18N');
-      return __($string, $params, $catalogue);
+      return sfContext::getInstance()->getI18N()->__($string, $params, $catalogue);
     }
 
     return $string;
@@ -96,4 +97,20 @@ class ncChangeLogUtils
     return is_array($primary_key) ? (count($primary_key) > 1 ? implode('-', $primary_key) : array_pop($primary_key)) : $primary_key;
   }
   
+  
+  /**
+   * Tries to get the event dispatcher; returns null if not successfull
+   * 
+   * @return sfEventDispatcher
+   */
+  public static function getEventDispatcher()
+  {
+    if (is_null(self::$dispatcher) && sfContext::hasInstance())
+    {
+      self::$dispatcher = sfContext::getInstance()->getEventDispatcher();
+    }
+    
+    return self::$dispatcher;
+  }
+
 }

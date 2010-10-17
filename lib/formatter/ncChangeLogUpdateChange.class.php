@@ -8,15 +8,20 @@ class ncChangeLogUpdateChange
   public
     $fieldName,
     $oldValue,
-    $newValue;
+    $newValue,
+    $columnType,
+    $columnMap;
+    
+  protected $filtered_vars;    
   
 
-  public function __construct($fieldName, $oldValue, $newValue, $updateAdapter)
+  public function __construct($fieldName, $oldValue, $newValue, $updateAdapter, $columnType = null)
   {
     $this->fieldName  = $fieldName;
     $this->oldValue   = $oldValue;
     $this->newValue   = $newValue;
     $this->adapter    = $updateAdapter;
+    $this->columnType = $columnType;
   }
   
   
@@ -60,27 +65,35 @@ class ncChangeLogUpdateChange
    */
   public function getColumnType()
   {
-    $peerClassName = $this->adapter->getEntry()->getObjectPeerClassName();
-
-    if (!is_null($peerClassName) && class_exists($peerClassName))
+    if (is_null($this->columnType))
     {
-      $tableMap = call_user_func(array($peerClassName , 'getTableMap'));
-      if (!is_null($tableMap) && ($tableMap !== false) && ($tableMap->containsColumn($this->getFieldName())))
+      if ($columnMap = $this->getColumnMap())
       {
-        $column = $tableMap->getColumn($this->getFieldName());
-
-        return $column->getType();
+        $this->columnType = $columnMap->getType();
       }
     }
-
-    return null;
+    
+    return $this->columnType;
   }
-
-  protected function getDispatcher()
+  
+  /**
+  * Return the columnMap of the field that this change represents
+  * 
+  * @return ColumnMap
+  */
+  public function getColumnMap()
   {
-    if (sfContext::hasInstance())
-      return sfContext::getInstance()->getEventDispatcher();
-    return null;
+    if (is_null($this->columnMap))
+    {
+      $tableMap = $this->adapter->getTableMap();
+      
+      if ( $tableMap && $tableMap->containsColumn($this->getFieldName()) )
+      {
+        $this->columnMap = $tableMap->getColumn($this->getFieldName());
+      }
+    }
+    
+    return $this->columnMap;
   }
 
   protected function createEvent()
@@ -101,40 +114,35 @@ class ncChangeLogUpdateChange
     );
   }
 
-  public function getForeignValue($value, $method = '__toString')
+  protected function getForeignValue($value, $method = '__toString')
   {
     if (ncChangeLogConfigHandler::getForeignValues() && $this->isForeignKey())
     {
-      $peerClassName = constant($this->adapter->getClassName().'::PEER');
-      $tableMap = call_user_func(array($peerClassName , 'getTableMap'));
+      $tableMap = $this->adapter->getTableMap();
+      $columnMap = $this->getColumnMap();
+      
       $tableMap->buildRelations();
-      $column = $tableMap->getColumn($this->getFieldName());
-      $relatedObjectClass     = $column->getRelatedTable()->getClassname();
+      
+      $relatedObjectClass     = $columnMap->getRelatedTable()->getClassname();
       $relatedObjectPeerClass = constant($relatedObjectClass . '::PEER');
-      if (!is_null($relatedObjectPeerClass) && class_exists($relatedObjectPeerClass))
+      
+      if (class_exists($relatedObjectPeerClass))
       {
-        $object = call_user_func(array($relatedObjectPeerClass, 'retrieveByPk'), $value);
-        if (!is_null($object) && method_exists($object, $method))
-        {
-          return $object->$method();
-        }
+        $object = call_user_func(array($relatedObjectPeerClass, 'retrieveByPK'), $value);
+        return method_exists($object, $method) ? $object->$method() : $value;
       }
     }
+    
     return $value;
   }
 
   public function isForeignKey()
   {
-    $peerClassName = constant($this->adapter->getClassName().'::PEER');
-    if (!is_null($peerClassName) && class_exists($peerClassName))
+    if ($columnMap = $this->getColumnMap())
     {
-      $tableMap = call_user_func(array($peerClassName , 'getTableMap'));
-      if (!is_null($tableMap) && ($tableMap !== false) && ($tableMap->containsColumn($this->getFieldName())))
-      {
-        $column = $tableMap->getColumn($this->getFieldName());
-        return is_null($column)? false : $column->isForeignKey();
-      }
+      return $columnMap->isForeignKey();
     }
+    
     return false;
   }
 
@@ -148,28 +156,36 @@ class ncChangeLogUpdateChange
     return $this->fieldName;
   }
 
-  protected function getValue($value, $emitSignal)
+  protected function getValue($value)
   {
-    $res   = $value;
-    $event = null;
-
-    if ($emitSignal)
+    $hash = md5(serialize($value));
+    
+    if ( ! isset($this->filtered_vars[$hash]))
     {
-      $globalEvent = $this->createGlobalEvent();
-      $this->getDispatcher()->filter($globalEvent, $value);
-      $res = $globalEvent->getReturnValue();
+      $res   = $value;
+      $event = null;
 
-      $event = $this->createEvent();
-      $this->getDispatcher()->filter($event, $res);
-      $res = $event->getReturnValue();
+      if (ncChangeLogConfigHandler::fireFieldFormattingEvents())
+      {
+        $globalEvent = $this->createGlobalEvent();
+        ncChangeLogUtils::getEventDispatcher()->filter($globalEvent, $value);
+        $res = $globalEvent->getReturnValue();
+
+        $event = $this->createEvent();
+        ncChangeLogUtils::getEventDispatcher()->filter($event, $res);
+        $res = $event->getReturnValue();
+      }
+
+      if (is_null($event) || (!$event->isProcessed() && !empty($value) && $this->isForeignKey()))
+      {
+        $res = $this->getForeignValue($value);
+      }
+      
+      $this->filtered_vars[$hash] = $res;
     }
-
-    if (is_null($event) || (!$event->isProcessed() && !empty($value) && $this->isForeignKey()))
-    {
-      $res = $this->getForeignValue($value);
-    }
-
-    return $res;
+    
+    
+    return $this->filtered_vars[$hash];
   }
 
   /**
@@ -177,9 +193,9 @@ class ncChangeLogUpdateChange
    *
    * @return String
    */
-  public function getOldValue($emitSignal = false)
+  public function getOldValue()
   {
-    return $this->getValue($this->oldValue, $emitSignal);
+    return $this->getValue($this->oldValue);
   }
 
   /**
@@ -187,9 +203,20 @@ class ncChangeLogUpdateChange
    *
    * @return String
    */
-  public function getNewValue($emitSignal = false)
+  public function getNewValue()
   {
-    return $this->getValue($this->newValue, $emitSignal);
+    return $this->getValue($this->newValue);
+  }
+  
+  
+  public function getClassName()
+  {
+    return $this->adapter->getClassName();
+  }
+  
+  public function getPeerClassName()
+  {
+    return $this->adapter->getPeerClassName();
   }
 
   /**
@@ -199,7 +226,15 @@ class ncChangeLogUpdateChange
    */
   public function renderFieldName()
   {
-    return $this->adapter->translate($this->getFieldName());
+    $translateFieldName = array($this->getClassName(), ncChangeLogConfigHandler::getFieldNameTranslationMethod());
+    
+    if (is_callable($translateFieldName))
+    {
+      $translatedFieldName = call_user_func($translateFieldName, $this->getFieldName());
+    }
+    
+    // in case the translateFieldName method returned the same data, we try to use i18n translation
+    return $translatedFieldName == $this->getFieldName() ? $this->adapter->translate($this->getFieldName()) : $translatedFieldName;
   }
 
   /**
@@ -209,6 +244,6 @@ class ncChangeLogUpdateChange
    */
   public function render()
   {
-    return ncChangeLogConfigHandler::getFormatter()->formatUpdateChange($this);
+    return $this->adapter->getFormatter()->formatUpdateChange($this);
   }
 }

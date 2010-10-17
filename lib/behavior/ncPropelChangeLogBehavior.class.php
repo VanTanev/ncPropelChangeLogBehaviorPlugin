@@ -378,7 +378,7 @@ class ncPropelChangeLogBehavior
     }
 
     $ignored_fields = ncChangeLogConfigHandler::getIgnoreFields(get_class($object));
-    $tableMap = Propel::getDatabaseMap()->getTable(constant($objectPeerClass.'::TABLE_NAME'));
+    $tableMap = call_user_func(array($objectPeerClass, 'getTableMap'));
 
     $diff = array('changes' => array());
     
@@ -395,6 +395,7 @@ class ncPropelChangeLogBehavior
           'old'   => $stored_object->$value_method($params),
           'new'   => $object->$value_method($params),
           'field' => $col_fieldName,
+          'type'  => $columnMap->getType(),
           'raw'    => array(
              // the previous version used toArray for these values, but this is exactly the same
             'old'   => $stored_object->$value_method(),
@@ -405,10 +406,10 @@ class ncPropelChangeLogBehavior
     }
     
     // Filter the changes event; can be used to add custom fields or whatever
-    if ( self::getEventDispatcher() )
+    if ( ncChangeLogUtils::getEventDispatcher() )
     {
       $event = new sfEvent($object, $tableMap->getName() . '.nc_filter_changes');
-      self::getEventDispatcher()->filter($event, $diff);
+      ncChangeLogUtils::getEventDispatcher()->filter($event, $diff);
       
       $diff = $event->getReturnValue();
     }
@@ -426,20 +427,6 @@ class ncPropelChangeLogBehavior
   }
   
   
-  /**
-   * Tries to get the event dispatcher; returns null if not successfull
-   * 
-   * @return sfEventDispatcher
-   */
-  protected static function getEventDispatcher()
-  {
-    if (is_null(self::$dispatcher) && sfContext::hasInstance())
-    {
-      self::$dispatcher = sfContext::getInstance()->getEventDispatcher();
-    }
-    
-    return self::$dispatcher;
-  }
 
   
 }

@@ -4,16 +4,36 @@
 ## You may override any of these settings in your application's app.yml configuration file.
 ##
 
-#all:
-#  nc_change_log_behavior:
-#    username_method:       getUsername
-#    username_cli:          cli
-#    formatter_class:       ncChangeLogEntryFormatter
-#    translation_object_method:    getHumanName
-#    translation_field_method:     translateField
-#    translation_use_i18n:         false
-#    date_format:                  'Y/m/d'
-#    date_time_format:             'Y/m/d H:i:s'
-#    time_format:                  'H:i:s'
-#    ignore_fields:
-#      any_class: [created_at, created_by, updated_at, updated_by]
+# all:
+#   nc_change_log_behavior:
+#     ## sfUser attribute used when obtaining the 'username' of the person performing the changes.
+#     username_method:              getUsername
+#     ## 'username' value used when running a task from cli that registers changes in the model.
+#     username_cli:                 cli
+#     ## ncChangeLogEntryFormatter child class used when formatting the text
+#     formatter_class:              ncChangeLogEntryFormatter
+#     ## if this setting is true, the plugin will fire events for field value formatting; check the *Fields formatting* section below
+#     fire_formatting_events:       true
+#     ## Instance method used when trying to translate the class name for an object. This method may not exist.
+#     object_translation_method:    getHumanName
+#     ## Instance method used when trying to translate a field name for an object. This method may not exist.
+#     field_translation_method:     translateField
+#     ## If this is set to true, the messages will be translated using the catalogue app_name/i18n/tables/table_name. Only valid when using the default translation methods.
+#     translation_use_i18n:         false
+#     ## the date format
+#     date_format:                  'Y/m/d'
+#     ## the date time format
+#     date_time_format:             'Y/m/d H:i:s'
+#     ## the time format
+#     time_format:                  'H:i:s'
+#     ## If this is set to true, the values shown will be escaped with sfOutputEscaper::unescape. (useful when rendering values throw signals).
+#     escape_values:                false
+#     ## For foreign keys, this setting will make the plugin retrieve the foreign object and use its __toString() representation.
+#     get_foreign_values:           false
+
+#     ## Fields that should be ignored when looking for changes in an object...
+#     ignore_fields:
+#         ## ...for all classes; These are the actual default values, feel free to add more that apply to your needs
+#         any_class: [created_at, created_by, updated_at, updated_by]
+#         ## ...for MyOtherClass and so on... (this is just an example, not a default value)
+#         my_other_class: [name, height]

@@ -7,15 +7,22 @@
 class ncChangeLogEntryFormatter
 {
   protected
-    /* Update formats: available placeholders: * %field_name% * %old_value% * %new_value% */
+    /** @var string available placeholders: %field_name% * %old_value% * %new_value% */
     $valueUpdateFormat   = "Value of field '%field_name%' changed from '%old_value%' to '%new_value%'.",
+    /** @var string available placeholders: %field_name% * %new_value% */
     $valueAdditionFormat = "Value of field '%field_name%' was set to '%new_value%'. It had no value set before.",
+    /** @var string available placeholders: %field_name% * %old_value% */
     $valueRemovalFormat  = "Value of field '%field_name%' was unset. It's previous value was '%old_value%'.",
-    /* Insertion format: available placeholders: * %object_name% * %pk% */
+    /** @var string available placeholders: %object_name% * %pk% * %date% * %username% */
     $insertionFormat     = "A new %object_name% has been created and it has been given the primary key '%pk%' at %date% by %username%.",
-    /* Deletion format: available placeholders: * %object_name% * %pk% */
+    /** @var string available placeholders: %object_name% * %pk% * %date% * %username% */
     $deletionFormat      = "The %object_name% with primary key '%pk%' has been deleted at %date% by %username%.",
-    $listEntry           = "%operation% at %date%";
+    /** @var string available placeholders: %field_name% */
+    $booleanSetFormat    = "The boolean field '%field_name%' was set.",
+    /** @var string available placeholders: %field_name% */
+    $booleanUnsetFormat  = "The boolean field '%field_name%' was unset.",
+    /** @var string available placeholders: %operation% * %date% */
+    $listEntryFormat     = "%operation% at %date%";
     
 
   /**
@@ -97,11 +104,11 @@ class ncChangeLogEntryFormatter
   {
     if (is_null($change->getOldValue()) || (strlen($change->getOldValue()) == 0))
     {
-      $format = $this->valueAdditionFormat;
+      $format = PropelColumnTypes::BOOLEAN == $change->getColumnType() ? $this->booleanSetFormat : $this->valueAdditionFormat;
     }
     elseif (is_null($change->getNewValue()) || (strlen($change->getNewValue()) == 0))
     {
-      $format = $this->valueRemovalFormat;
+      $format = PropelColumnTypes::BOOLEAN == $change->getColumnType() ? $this->booleanUnsetFormat : $this->valueRemovalFormat;
     }
     else
     {
@@ -149,7 +156,7 @@ class ncChangeLogEntryFormatter
     return str_replace(
       array('%operation%', '%date%'),
       array($adapter->renderOperationType(), $adapter->renderCreatedAt()),
-      ncChangeLogUtils::translate($this->listEntry)
+      ncChangeLogUtils::translate($this->listEntryFormat)
     );
   }
 

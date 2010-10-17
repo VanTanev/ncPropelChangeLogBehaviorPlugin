@@ -6,6 +6,9 @@ class PluginncChangeLogEntry extends BasencChangeLogEntry
   /** @var BaseObject The object for which this ChangeLog applies */
   protected $object;
   
+  /** @var TableMap The table map for the object related to this Changelog */
+  protected $tableMap;
+  
   
   public function __toString()
   {
@@ -147,6 +150,40 @@ class PluginncChangeLogEntry extends BasencChangeLogEntry
     }
     
     return $this->object;
+  }
+  
+  
+  /**
+  * Manually set the table map for the encapsulated object
+  * 
+  * @param TableMap $map
+  *
+  * @return ncChangeLogEntry
+  */
+  public function setTableMap(TableMap $map)
+  {
+    $this->tableMap = $map;
+    
+    return $this;
+  }
+  
+  
+  /**
+  * Get the table map for the encapsulated object
+  * 
+  * @return TableMap
+  */
+  public function getTableMap()
+  {
+    if (is_null($this->tableMap))
+    {
+      if (class_exists($this->getObjectPeerClassName()))
+      {
+        $this->tableMap = call_user_func(array($this->getObjectPeerClassName(), 'getTableMap'));
+      }
+    }
+    
+    return $this->tableMap;
   }
   
   

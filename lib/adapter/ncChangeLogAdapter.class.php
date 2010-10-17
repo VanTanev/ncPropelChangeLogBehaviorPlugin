@@ -14,7 +14,8 @@ abstract class ncChangeLogAdapter extends ArrayObject
   /** @var ncChangeLogEntry  */
   protected $entry;  
 
-  
+  /** @var ncChangeLogEntryFormatter */
+  protected $formatter;
   /**
    * Constructor
    *
@@ -105,6 +106,12 @@ abstract class ncChangeLogAdapter extends ArrayObject
   {
     return $this->entry->getObjectClassName();
   }
+  
+  
+  public function getPeerClassName()
+  {
+    return $this->entry->getObjectPeerClassName();
+  }
 
   /**
    * Retrieves the affected table name.
@@ -154,7 +161,18 @@ abstract class ncChangeLogAdapter extends ArrayObject
    */
   public function getObject()
   {
-    $this->entry->getObject();
+    return $this->entry->getObject();
+  }
+  
+  
+  /**
+  * Return the table map for the encapsulated object in the entry
+  * 
+  * @return TableMap
+  */
+  public function getTableMap()
+  {
+    return $this->entry->getTableMap();
   }
  
 
@@ -167,10 +185,15 @@ abstract class ncChangeLogAdapter extends ArrayObject
    * 
    * @return ncChangeLogEntryFormatter
    */
-  protected function getFormatter()
+  public function getFormatter()
   {
-    $formatterClass = ncChangeLogConfigHandler::getFormatterClass();
-    return new $formatterClass();
+    if (is_null($this->formatter))
+    {
+      $formatterClass = ncChangeLogConfigHandler::getFormatterClass();
+      $this->formatter = new $formatterClass;
+    }
+    
+    return $this->formatter;
   }
   
 

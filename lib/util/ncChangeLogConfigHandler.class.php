@@ -94,13 +94,18 @@ class ncChangeLogConfigHandler
   }
   
 
-  static public function getTranslationObjectMethod()
+  static public function getObjectNameTranslationMethod()
   {
-    return sfConfig::get('app_nc_change_log_behavior_translation_object_method', 'getHumanName') ;
+    return sfConfig::get('app_nc_change_log_behavior_object_translation_method', 'getHumanName') ;
   }
   
-  static public function getTranslationFieldMethod()
+  static public function getFieldNameTranslationMethod()
   {
-    return sfConfig::get('app_nc_change_log_behavior_translation_field_method', 'translateField');
+    return sfConfig::get('app_nc_change_log_behavior_object_translation_method', 'translateField');
+  }
+  
+  static public function fireFieldFormattingEvents()
+  {
+    return sfConfig::get('app_nc_change_log_behavior_fire_formatting_events', true);
   }
 }

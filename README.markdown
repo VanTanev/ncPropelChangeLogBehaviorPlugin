@@ -82,12 +82,12 @@ The following code shows the keys used, along with the default values:
         username_cli:                 cli
         ## ncChangeLogEntryFormatter child class used when formatting the text
         formatter_class:              ncChangeLogEntryFormatter
-        ## try to get foreign values
-        get_foreign_values:           false
+        ## if this setting is true, the plugin will fire events for field value formatting; check the *Fields formatting* section below
+        formatting_events:           true
         ## Instance method used when trying to translate the class name for an object. This method may not exist.
-        translation_object_method:    getHumanName
+        object_translation_method:    getHumanName
         ## Instance method used when trying to translate a field name for an object. This method may not exist.
-        translation_field_method:     translateField
+        field_translation_method:     translateField
         ## If this is set to true, the messages will be translated using the catalogue app_name/i18n/tables/table_name. Only valid when using the default translation methods.
         translation_use_i18n:         false
         ## the date format
@@ -98,7 +98,7 @@ The following code shows the keys used, along with the default values:
         time_format:                  'H:i:s'
         ## If this is set to true, the values shown will be escaped with sfOutputEscaper::unescape. (useful when rendering values throw signals).
         escape_values:                false
-        ## Tries to retrieve the object and use its '__toString' method to render it when the field is a foreign key. ###!!EXPERIMENTAL!!##
+        ## For foreign keys, this setting will make the plugin retrieve the foreign object and use its __toString() representation.
         get_foreign_values:           false
 
         ## Fields that should be ignored when looking for changes in an object...
@@ -172,6 +172,7 @@ The subject is the Propel object handled by the behavior, and the value to be fi
       'changes' => array(
         'fieldName' => array(
           'field' => # the name of the field, to be used for display
+          'type'  => # the column type for the field, so that you don't have to go through the table map to get it
           'old'   => # old value of the field
           'new'   => # new value of the field
           'raw'   => array(
@@ -183,12 +184,8 @@ The subject is the Propel object handled by the behavior, and the value to be fi
     );
 
 
-Foreign keys <- Experimental ->
+Foreign keys
 ------------
 
 When a table has a foreign key, the plugin will show the primary key for this column. The plugin can also try to retrieve the object pointed by this column and render it by using its '__toString' method. For this, the 'get_foreign_values' has to be activated in *app.yml*.
 
-TODO
-----
-
-  * Test fully.
