@@ -339,6 +339,9 @@ class PluginncChangeLogEntry extends BasencChangeLogEntry
 
       case ncChangeLogEntryOperation::NC_CHANGE_LOG_ENTRY_OPERATION_DELETION:
         return new ncChangeLogAdapterDeletion($this);
+        
+      case ncChangeLogEntryOperation::NC_CHANGE_LOG_ENTRY_OPERATION_CUSTOM_MESSAGE:
+        return new ncChangeLogAdapterCustomMessage($this);        
 
       default:
         return null;

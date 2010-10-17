@@ -190,7 +190,7 @@ abstract class ncChangeLogAdapter extends ArrayObject
     if (is_null($this->formatter))
     {
       $formatterClass = ncChangeLogConfigHandler::getFormatterClass();
-      $this->formatter = new $formatterClass;
+      $this->formatter = new $formatterClass();
     }
     
     return $this->formatter;

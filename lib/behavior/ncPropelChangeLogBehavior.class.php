@@ -67,7 +67,7 @@ class ncPropelChangeLogBehavior
         $object->changelogEntry->setObjectPk($object->getPrimaryKey());
 
         $changes = array(
-          'raw'   => array()
+          // no changes
         );
 
         $object->changelogEntry->setChangesDetail($changes);
@@ -97,7 +97,7 @@ class ncPropelChangeLogBehavior
     $entry->setOperationType(ncChangeLogEntryOperation::NC_CHANGE_LOG_ENTRY_OPERATION_DELETION);
 
     $changes = array(
-      'raw'   => array()
+      // no changes
     );
 
     $entry->setChangesDetail($changes);
@@ -335,7 +335,50 @@ class ncPropelChangeLogBehavior
   */
   public function getLatestChangeLogEntry(BaseObject $object, $transformToAdapter = true, PropelPDO $con = null)
   {
+    if (isset($object->changelogEntry) && $object->changelogEntry instanceof ncChangeLogEntry)
+    {
+      return $transformToAdapter ? $object->changelogEntry->getAdapter() : $object->changelogEntry;
+    }
+    
     return ncChangeLogEntryPeer::getLatestChangeLogEntryForObject($object, $transformToAdapter, $con);
+  }
+  
+  
+  /**
+  * Add a custom change to the changelog of the object.
+  * 
+  * Using this method you can convey state changes of the object, which might not be
+  * directly described by its fields (the state change may occur in another table)
+  * 
+  * It works in a way similar to the "Object created" and "Object deleted" changelog instances
+  * 
+  * @param BaseObject $object
+  * @param string $message
+  * @param string $user You can set a custom user for custom messages, or leave it to autodetect
+  * @param PropelPDO $con
+  * 
+  * @return BaseObject
+  */
+  public function setCustomChangeMessage(BaseObject $object, $message, $user = null, PropelPDO $con = null)
+  {
+    if ( ! is_scalar($message))
+    {
+      throw new Exception(sprintf('[changelog] Only scalar values can be set as changelog messages, submitted value was of type "%s"', 'object' == gettype($message) ? get_class($message) : gettype($message)));
+    }                                                                                                                                  
+    
+    $entry = new ncChangeLogEntry($object);
+    $entry->setOperationType(ncChangeLogEntryOperation::CUSTOM_MESSAGE);
+    $entry->setUsername(is_null($user) ? ncChangeLogUtils::getUsername() : $user);
+    $entry->setChangesDetail(array(
+      'message' => $message
+    ));
+    
+    $entry->save($con);
+    $entry->clearObject();
+    
+    $object->changelogEntry = $entry;
+    
+    return $object;
   }
   
   

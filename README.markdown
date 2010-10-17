@@ -83,7 +83,7 @@ The following code shows the keys used, along with the default values:
         ## ncChangeLogEntryFormatter child class used when formatting the text
         formatter_class:              ncChangeLogEntryFormatter
         ## if this setting is true, the plugin will fire events for field value formatting; check the *Fields formatting* section below
-        formatting_events:           true
+        fire_formatting_events:       true
         ## Instance method used when trying to translate the class name for an object. This method may not exist.
         object_translation_method:    getHumanName
         ## Instance method used when trying to translate a field name for an object. This method may not exist.

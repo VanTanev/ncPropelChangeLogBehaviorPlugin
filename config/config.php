@@ -8,6 +8,7 @@ sfPropelBehavior::registerMethods('changelog', array(
   array('ncPropelChangeLogBehavior', 'getRelatedChangeLog'),
   array('ncPropelChangeLogBehavior', 'getChangeLogRoute'),
   array('ncPropelChangeLogBehavior', 'getLatestChangeLogEntry'),
+  array('ncPropelChangeLogBehavior', 'setCustomChangeMessage')
 ));
 
 // Register behavior's hooks

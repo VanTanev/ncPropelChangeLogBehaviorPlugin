@@ -22,7 +22,9 @@ class ncChangeLogEntryFormatter
     /** @var string available placeholders: %field_name% */
     $booleanUnsetFormat  = "The boolean field '%field_name%' was unset.",
     /** @var string available placeholders: %operation% * %date% */
-    $listEntryFormat     = "%operation% at %date%";
+    $listEntryFormat     = "%operation% at %date%",
+    /** @var string available placeholders: %date% * %message% */
+    $customMessageFormat = "On %date% %message%";
     
 
   /**
@@ -59,7 +61,7 @@ class ncChangeLogEntryFormatter
   {
     return str_replace(
       array('%object_name%', '%pk%', '%date%', '%username%'),
-      array($adapter->renderClassName(), $adapter->getPrimaryKey(), $adapter->renderCreatedAt(), $adapter->renderUsername()),
+      array($adapter->renderClassName(), $adapter->getPrimaryKey(), $adapter->renderCreatedAt(ncChangeLogConfigHandler::getDateTimeFormat()), $adapter->renderUsername()),
       ncChangeLogUtils::translate($this->insertionFormat)
     );
   }
@@ -87,7 +89,7 @@ class ncChangeLogEntryFormatter
   {
     return str_replace(
       array('%object_name%', '%pk%', '%date%', '%username%'),
-      array($adapter->renderClassName(), $adapter->getPrimaryKey(), $adapter->renderCreatedAt(), $adapter->renderUsername()),
+      array($adapter->renderClassName(), $adapter->getPrimaryKey(), $adapter->renderCreatedAt(ncChangeLogConfigHandler::getDateTimeFormat()), $adapter->renderUsername()),
       ncChangeLogUtils::translate($this->deletionFormat)
     );
   }
@@ -155,7 +157,7 @@ class ncChangeLogEntryFormatter
   {
     return str_replace(
       array('%operation%', '%date%'),
-      array($adapter->renderOperationType(), $adapter->renderCreatedAt()),
+      array($adapter->renderOperationType(), $adapter->renderCreatedAt(ncChangeLogConfigHandler::getDateTimeFormat())),
       ncChangeLogUtils::translate($this->listEntryFormat)
     );
   }
@@ -197,6 +199,17 @@ class ncChangeLogEntryFormatter
   public function formatListDeletion($adapter, $url)
   {
     return $this->formatList($adapter);
+  }
+  
+  
+  public function formatCustomMessage($adapter)
+  {
+    return str_replace(
+      array('%date%', '%message%'),
+      array($adapter->renderCreatedAt(ncChangeLogConfigHandler::getDateTimeFormat()), $adapter->renderMessage()),
+      ncChangeLogUtils::translate($this->customMessageFormat)
+    );
+    
   }
 
 }
