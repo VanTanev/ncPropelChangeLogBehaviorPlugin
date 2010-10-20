@@ -25,7 +25,7 @@ class autoNcchangelogentryActions extends sfActions
     $this->nn_related_nc_change_log_entries = $this->object->getNNRelatedChangeLog();
 
     $keys = array_keys($this->nc_change_log_entries);
-    $this->class_name = count($this->nc_change_log_entries) > 0? $this->nc_change_log_entries[$keys[0]]->renderClassName() : get_class($this->object);
+    $this->class_name = count($this->nc_change_log_entries) > 0 ? $this->nc_change_log_entries[$keys[0]]->renderClassName() : get_class($this->object);
   }
 
   /**
@@ -49,12 +49,14 @@ class autoNcchangelogentryActions extends sfActions
   protected function getObject(sfWebRequest $request)
   {
     $this->class = $request->getParameter('class');
+    $pk = $request->getParameter('pk');
+    $pk = false !== strpos($pk, '-') ? explode('-', $pk) : array($pk);
     if (class_exists($this->class))
     {
-      $peer_class = constant($this->class.'::PEER');
+      $peer_class = constant($this->class . '::PEER');
       if (class_exists($peer_class))
-      {
-        return call_user_func(array($peer_class, 'retrieveByPK'), $request->getParameter('pk'));
+      {//            throw new Exception($pk);
+        return call_user_func_array(array($peer_class, 'retrieveByPK'), $pk);
       }
       
       throw new sfException('Unable to find class "'.$peer_class.'".');

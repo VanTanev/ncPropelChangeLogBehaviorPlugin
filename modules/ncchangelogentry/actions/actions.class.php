@@ -1,5 +1,7 @@
 <?php
 
+require_once(dirname(__FILE__).'/../lib/autoNcchangelogentryActions.class.php');
+
 /**
  * ncchangelogentry actions.
  *

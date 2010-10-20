@@ -1,4 +1,4 @@
-<?php use_helper('I18N', 'Date', 'Javascript') ?>
+<?php use_helper('I18N', 'Date', 'JavascriptBase') ?>
 <?php use_stylesheet('/sfPropelRevisitedGeneratorPlugin/css/global.css', 'first') ?>
 <?php use_stylesheet('/sfPropelRevisitedGeneratorPlugin/css/extended.css', 'first') ?>
 

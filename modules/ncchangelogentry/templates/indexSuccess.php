@@ -1,4 +1,4 @@
-<?php use_helper('I18N', 'Javascript') ?>
+<?php use_helper('I18N', 'JavascriptBase') ?>
 <?php use_stylesheet('/sfPropelRevisitedGeneratorPlugin/css/global.css', 'first') ?>
 <?php use_stylesheet('/sfPropelRevisitedGeneratorPlugin/css/extended.css', 'first') ?>
 <?php use_javascript('/sfProtoculousPlugin/js/prototype.js', 'last') ?>
@@ -9,6 +9,7 @@
 
   <div id="nc_change_log_content">
     <?php include_partial('ncchangelogentry/list', array('id' => null, 'nc_change_log_entries' => $nc_change_log_entries)) ?>
+    
     <?php if (count($related_nc_change_log_entries) > 0): ?>
       <h1><?php echo __('Changes in foreign objects referenced by object "%%object%%" of class "%%class%%"', array('%%class%%' => $class_name, '%%object%%' => $object->__toString()), 'nc_change_log_behavior')?></h1>
       <div class="nc_change_log_related_entries">
