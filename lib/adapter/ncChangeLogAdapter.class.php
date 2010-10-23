@@ -244,6 +244,16 @@ abstract class ncChangeLogAdapter extends ArrayObject
     return ncChangeLogUtils::translate(ncChangeLogEntryOperation::getStringFor($this->entry->getOperationType()));
   }
   
+  
+  /**
+  * Retrieves the raw value of the Operation Type column
+  * 
+  */
+  public function getOperationType()
+  {
+    return $this->entry->getOperationType();
+  }
+  
 
   /**
    * Retrieves the HTML representation of the changes

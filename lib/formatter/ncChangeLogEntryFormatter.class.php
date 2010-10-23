@@ -104,18 +104,25 @@ class ncChangeLogEntryFormatter
    */
   public function formatUpdateChange(ncChangeLogUpdateChange $change)
   {
-    if (is_null($change->getOldValue()) || (strlen($change->getOldValue()) == 0))
-    {
-      $format = PropelColumnTypes::BOOLEAN == $change->getColumnType() ? $this->booleanSetFormat : $this->valueAdditionFormat;
-    }
-    elseif (is_null($change->getNewValue()) || (strlen($change->getNewValue()) == 0))
-    {
-      $format = PropelColumnTypes::BOOLEAN == $change->getColumnType() ? $this->booleanUnsetFormat : $this->valueRemovalFormat;
-    }
-    else
-    {
-      $format = $this->valueUpdateFormat;
-    }
+    switch ($change->getChangeType()):
+      case ncChangeLogUpdateChange::TYPE_VALUE_ADD:
+        $format = $this->valueAdditionFormat;
+        break;
+      case ncChangeLogUpdateChange::TYPE_VALUE_REMOVE:
+        $format = $this->valueAdditionFormat;
+        break;
+      case ncChangeLogUpdateChange::TYPE_VALUE_UPDATE:
+        $format = $this->valueAdditionFormat;
+        break;
+      case ncChangeLogUpdateChange::TYPE_BOOLEAN_SET:
+        $format = $this->valueAdditionFormat;
+        break;
+      case ncChangeLogUpdateChange::TYPE_BOOLEAN_UNSET:
+        $format = $this->valueAdditionFormat;
+        break;
+      default:
+        $format = sprintf('Unknown formatting type "%s" for field "%s"', $change->getChangeType(), $change->getFieldName());
+    endswitch;
 
     return str_replace(
       array('%field_name%', '%old_value%', '%new_value%'),
@@ -202,6 +209,12 @@ class ncChangeLogEntryFormatter
   }
   
   
+  /**
+  * Outputs the html representation of a custom message
+  * 
+  * @param ncChangeLogAdapterCustomMessage $adapter
+  * @return string
+  */
   public function formatCustomMessage($adapter)
   {
     return str_replace(

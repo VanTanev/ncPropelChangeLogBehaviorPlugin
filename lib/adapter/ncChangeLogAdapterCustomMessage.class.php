@@ -13,6 +13,12 @@ class ncChangeLogAdapterCustomMessage extends ncChangeLogAdapter
     return $this->getFormatter()->formatCustomMessage($this);
   }
   
+  
+  /**
+  * Returns the custom message
+  * 
+  * @return string
+  */
   public function renderMessage()
   {
     $data = $this->entry->getChangesDetail();
@@ -21,6 +27,22 @@ class ncChangeLogAdapterCustomMessage extends ncChangeLogAdapter
   }
   
   
+  /**
+  * Returns the Custom Message; 
+  * if you need the operaiton type use getOperationType
+  * 
+  * @return string
+  */
+  public function renderOperationType()
+  {
+    return $this->renderMessage();
+  }
+  
+  
+  /**
+  * Empty method; required by the base abstract class, but makes no sense here
+  * 
+  */
   public function renderList($url = null) {}
 
 }

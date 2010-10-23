@@ -4,16 +4,16 @@ package:            plugins.ncPropelChangeLogBehaviorPlugin.lib.model
 classes:
   ncChangeLogEntry:
     tableName:      nc_change_log_entry
+    indexes:
+      changelog:    [class_name, object_pk]
     columns:
       id:           ~
       class_name:
         type:       varchar(255)
         required:   true
-        index:      true
       object_pk:
         type:       varchar(50)
         required:   true
-        index:      true
         phpName:    ObjectPK
       changes_detail:
         type:       longvarchar
@@ -24,3 +24,4 @@ classes:
         type:       tinyint
         required:   true
       created_at:   ~
+    

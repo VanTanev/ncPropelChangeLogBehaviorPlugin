@@ -2,6 +2,13 @@
 
 class ncChangeLogUpdateChange
 {
+  const 
+    TYPE_VALUE_ADD      = 'VALUE.ADDITION',
+    TYPE_VALUE_REMOVE   = 'VALUE.REMOVAL',
+    TYPE_VALUE_UPDATE   = 'VALUE.UPDATE',
+    TYPE_BOOLEAN_SET    = 'BOOLEAN.SET',
+    TYPE_BOOLEAN_UNSET  = 'BOOLEAN.UNSET';
+  
   /** @var ncChangeLogAdapter */
   public $adapter;
   
@@ -155,6 +162,23 @@ class ncChangeLogUpdateChange
   {
     return $this->fieldName;
   }
+  
+  public function getChangeType()
+  {
+    if (is_null($this->getOldValue()) || (strlen($this->getOldValue()) == 0))
+    {
+      return PropelColumnTypes::BOOLEAN == $this->getColumnType() ? self::TYPE_BOOLEAN_SET : self::TYPE_VALUE_ADD;
+    }
+    elseif (is_null($this->getNewValue()) || (strlen($this->getNewValue()) == 0))
+    {
+      return PropelColumnTypes::BOOLEAN == $this->getColumnType() ? self::TYPE_BOOLEAN_UNSET : self::TYPE_VALUE_REMOVE;
+    }
+    else
+    {
+      return self::TYPE_VALUE_UPDATE;
+    }    
+  }
+  
 
   protected function getValue($value)
   {
