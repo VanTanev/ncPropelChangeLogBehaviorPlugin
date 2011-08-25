@@ -11,24 +11,24 @@ sfCoreAutoload::register();
 
 class ProjectConfiguration extends sfProjectConfiguration
 {
-  
+
   public function setup()
   {
     $this->setPlugins(array('ncPropelChangeLogBehaviorPlugin'));
     $this->setPluginPath('ncPropelChangeLogBehaviorPlugin', dirname(__FILE__).'/../../../..');
-    
-    if (is_dir(dirname(__FILE__).'/../../../../../sfPropel15Plugin'))
+
+    if (is_dir(dirname(__FILE__).'/../../../../../sfPropelORMPlugin'))
     {
-      $this->enablePlugins('sfPropel15Plugin');
+      $this->enablePlugins('sfPropelORMPlugin');
     }
     else
     {
       $this->enablePlugins('sfPropelPlugin');
     }
-    
+
   }
-  
-  
+
+
   public function initializePropel($app)
   {
     // build Propel om/map/sql/forms
@@ -63,7 +63,7 @@ class ProjectConfiguration extends sfProjectConfiguration
     /* */
   }
 
-  
+
   public function loadFixtures($fixtures)
   {
     // initialize database manager
@@ -105,5 +105,5 @@ class ProjectConfiguration extends sfProjectConfiguration
       $data->loadData(sfConfig::get('sf_data_dir').'/'.$fixtures);
     }
   }
-  
+
 }
