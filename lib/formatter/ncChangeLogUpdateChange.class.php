@@ -2,25 +2,25 @@
 
 class ncChangeLogUpdateChange
 {
-  const 
+  const
     TYPE_VALUE_ADD      = 'VALUE.ADDITION',
     TYPE_VALUE_REMOVE   = 'VALUE.REMOVAL',
     TYPE_VALUE_UPDATE   = 'VALUE.UPDATE',
     TYPE_BOOLEAN_SET    = 'BOOLEAN.SET',
     TYPE_BOOLEAN_UNSET  = 'BOOLEAN.UNSET';
-  
+
   /** @var ncChangeLogAdapter */
   public $adapter;
-  
+
   public
     $fieldName,
     $oldValue,
     $newValue,
     $columnType,
     $columnMap;
-    
-  protected $filtered_vars;    
-  
+
+  protected $filtered_vars;
+
 
   public function __construct($fieldName, $oldValue, $newValue, $updateAdapter, $columnType = null)
   {
@@ -30,16 +30,16 @@ class ncChangeLogUpdateChange
     $this->adapter    = $updateAdapter;
     $this->columnType = $columnType;
   }
-  
-  
+
+
   public function __toString()
   {
     return $this->render();
   }
-  
+
 
   /**
-   * Returns a propel column type or null if cannot fetch it. 
+   * Returns a propel column type or null if cannot fetch it.
    * Available column types are:
 
       const CHAR = "CHAR";
@@ -79,13 +79,13 @@ class ncChangeLogUpdateChange
         $this->columnType = $columnMap->getType();
       }
     }
-    
+
     return $this->columnType;
   }
-  
+
   /**
   * Return the columnMap of the field that this change represents
-  * 
+  *
   * @return ColumnMap
   */
   public function getColumnMap()
@@ -93,20 +93,20 @@ class ncChangeLogUpdateChange
     if (is_null($this->columnMap))
     {
       $tableMap = $this->adapter->getTableMap();
-      
+
       if ( $tableMap && $tableMap->containsColumn($this->getFieldName()) )
       {
         $this->columnMap = $tableMap->getColumn($this->getFieldName());
       }
     }
-    
+
     return $this->columnMap;
   }
 
   protected function createEvent()
   {
     return new sfEvent(
-      $this, 
+      $this,
       $this->adapter->getTableName().'.render_'.$this->getFieldName(),
       array('fieldName' => $this->getFieldName(), 'tableName' => $this->adapter->getTableName(), 'fieldType' => $this->getColumnType())
     );
@@ -115,7 +115,7 @@ class ncChangeLogUpdateChange
   protected function createGlobalEvent()
   {
     return new sfEvent(
-      $this, 
+      $this,
       'ncChangeLog.render',
       array('fieldName' => $this->getFieldName(), 'tableName' => $this->adapter->getTableName(), 'fieldType' => $this->getColumnType())
     );
@@ -127,19 +127,20 @@ class ncChangeLogUpdateChange
     {
       $tableMap = $this->adapter->getTableMap();
       $columnMap = $this->getColumnMap();
-      
-      $tableMap->buildRelations();
-      
+
+      // this will initialize the relations if they are not available yet
+      $tableMap->getRelations();
+
       $relatedObjectClass     = $columnMap->getRelatedTable()->getClassname();
       $relatedObjectPeerClass = constant($relatedObjectClass . '::PEER');
-      
+
       if (class_exists($relatedObjectPeerClass))
       {
         $object = call_user_func(array($relatedObjectPeerClass, 'retrieveByPK'), $value);
         return method_exists($object, $method) ? $object->$method() : $value;
       }
     }
-    
+
     return $value;
   }
 
@@ -149,7 +150,7 @@ class ncChangeLogUpdateChange
     {
       return $columnMap->isForeignKey();
     }
-    
+
     return false;
   }
 
@@ -162,7 +163,7 @@ class ncChangeLogUpdateChange
   {
     return $this->fieldName;
   }
-  
+
   public function getChangeType()
   {
     if (is_null($this->getOldValue()) || (strlen($this->getOldValue()) == 0))
@@ -176,14 +177,14 @@ class ncChangeLogUpdateChange
     else
     {
       return self::TYPE_VALUE_UPDATE;
-    }    
+    }
   }
-  
+
 
   protected function getValue($value)
   {
     $hash = md5(serialize($value));
-    
+
     if ( ! isset($this->filtered_vars[$hash]))
     {
       $res   = $value;
@@ -204,11 +205,11 @@ class ncChangeLogUpdateChange
       {
         $res = $this->getForeignValue($value);
       }
-      
+
       $this->filtered_vars[$hash] = $res;
     }
-    
-    
+
+
     return $this->filtered_vars[$hash];
   }
 
@@ -231,13 +232,13 @@ class ncChangeLogUpdateChange
   {
     return $this->getValue($this->newValue);
   }
-  
-  
+
+
   public function getClassName()
   {
     return $this->adapter->getClassName();
   }
-  
+
   public function getPeerClassName()
   {
     return $this->adapter->getPeerClassName();
@@ -251,12 +252,12 @@ class ncChangeLogUpdateChange
   public function renderFieldName()
   {
     $translateFieldName = array($this->getClassName(), ncChangeLogConfigHandler::getFieldNameTranslationMethod());
-    
+
     if (is_callable($translateFieldName))
     {
       $translatedFieldName = call_user_func($translateFieldName, $this->getFieldName());
     }
-    
+
     // in case the translateFieldName method returned the same data, we try to use i18n translation
     return $translatedFieldName == $this->getFieldName() ? $this->adapter->translate($this->getFieldName()) : $translatedFieldName;
   }
