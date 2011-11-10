@@ -4,11 +4,10 @@
  * autoNcchangelogentry actions.
  *
  * @package    sumarios
- * @subpackage ncchangelogentry
+ * @subpackage ncChangeLogEntryActionsy
  * @author     ncuesta
- * @version    SVN: $Id: actions.class.php 12479 2008-10-31 10:54:40Z fabien $
  */
-class autoNcchangelogentryActions extends sfActions
+class autoNcChangeLogEntryActions extends sfActions
 {
  /**
   * Executes index action.
@@ -43,7 +42,7 @@ class autoNcchangelogentryActions extends sfActions
 
   /**
    * Use $request to obtain the object of the changeLog.
-   * 
+   *
    * @param sfWebRequest $request
    */
   protected function getObject(sfWebRequest $request)
@@ -58,7 +57,7 @@ class autoNcchangelogentryActions extends sfActions
       {//            throw new Exception($pk);
         return call_user_func_array(array($peer_class, 'retrieveByPK'), $pk);
       }
-      
+
       throw new sfException('Unable to find class "'.$peer_class.'".');
     }
 

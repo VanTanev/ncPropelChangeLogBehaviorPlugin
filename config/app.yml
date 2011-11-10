@@ -30,6 +30,8 @@
 #     escape_values:                false
 #     ## For foreign keys, this setting will make the plugin retrieve the foreign object and use its __toString() representation.
 #     get_foreign_values:           false
+#     ## Register routes for a simple interface to view changelogs
+#     routes_register:              false
 
 #     ## Fields that should be ignored when looking for changes in an object...
 #     ignore_fields:
