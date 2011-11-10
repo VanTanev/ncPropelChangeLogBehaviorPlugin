@@ -26,12 +26,12 @@
 #     date_time_format:             'Y/m/d H:i:s'
 #     ## the time format
 #     time_format:                  'H:i:s'
-#     ## If this is set to true, the values shown will be escaped with sfOutputEscaper::unescape. (useful when rendering values throw signals).
-#     escape_values:                false
+#     ## If set to true, values will be unescaped. Use this if you have a formatter that returns javascript or html
+#     unescape_values:              false
 #     ## For foreign keys, this setting will make the plugin retrieve the foreign object and use its __toString() representation.
 #     get_foreign_values:           false
 #     ## Register routes for a simple interface to view changelogs
-#     routes_register:              false
+#     routes_register:              true
 
 #     ## Fields that should be ignored when looking for changes in an object...
 #     ignore_fields:

@@ -196,7 +196,7 @@ class ncPropelChangeLogBehavior
 
         if ( !empty($changelog) )
         {
-          $relatedChangeLog[$localColumn->getPhpName()] = $changelog;
+          $relatedChangeLog[$relation->getForeignTable()->getPhpName()] = $changelog;
         }
       }
     }
@@ -254,7 +254,7 @@ class ncPropelChangeLogBehavior
       {
         $relatedTableMap         = $rel->getLocalTable(); // yeah, it says local table... propel is strange like that ;)
         $relatedTableObjectClass = $relatedTableMap->getClassname();
-        $relatedTablePeerClass   = constant($relatedTableObjectClass . '::PEER');
+        $relatedTablePeerClass   = $relatedTableMap->getPeerClassname();
         $relatedTableName        = $relatedTableMap->getPhpName();
 
         foreach ($relatedTableMap->getRelations() as $relCrossRef)
@@ -266,7 +266,7 @@ class ncPropelChangeLogBehavior
             $crossRefTableMap    = $relCrossRef->getLocalTable();
             $crossRefTableName   = $crossRefTableMap->getName();
             $crossRefObjectClass = $crossRefTableMap->getClassname();
-            $crossRefPeerClass   = constant($crossRefObjectClass . '::PEER');
+            $crossRefPeerClass   = $crossRefTableMap->getPeerClassname();
 
             $localColumns = $relCrossRef->getLocalColumns();
             $foreignColumns = $crossRefTableMap->getRelation($rel->getName())->getLocalColumns();
@@ -431,7 +431,6 @@ class ncPropelChangeLogBehavior
           'field' => $col_fieldName,
           'type'  => $columnMap->getType(),
           'raw'    => array(
-             // the previous version used toArray for these values, but this is exactly the same
             'old'   => $stored_object->$value_method(),
             'new'   => $object->$value_method(),
           )

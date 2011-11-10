@@ -7,11 +7,11 @@ class ncChangeLogConfigHandler
     return sfConfig::get("app_nc_change_log_behavior_get_foreign_values", false);
   }
 
-  static public function shouldEscapeValues()
+  static public function UnescapeValues()
   {
-    return sfConfig::get("app_nc_change_log_behavior_escape_values", false);
+    return sfConfig::get("app_nc_change_log_behavior_unescape_values", false);
   }
-  
+
   static public function getDateTimeFormat()
   {
     return sfConfig::get("app_nc_change_log_behavior_date_time_format", 'Y/m/d H:i:s');
@@ -37,11 +37,11 @@ class ncChangeLogConfigHandler
     return sfConfig::get('app_nc_change_log_behavior_formatter_class', 'ncChangeLogEntryFormatter');
   }
 
-  
+
   /**
    * Returns an instance of the formatter class
    *
-   * @return ncChangeLogEntryFormatter 
+   * @return ncChangeLogEntryFormatter
    */
   static public function getFormatter()
   {
@@ -63,23 +63,23 @@ class ncChangeLogConfigHandler
   /**
    * Return an array of fields that should be ignored in the changelog.
    *   * Use 'app_nc_change_log_behavior_ignore_fields' configuration value.
-   *       Defaults to:
-   *          <code>
-   *            array(
-   *              'created_at',
-   *              'created_by',
-   *              'updated_at',
-   *              'updated_by'
-   *            );
-   *          </code>
+   *     Defaults to:
+   *        <code>
+   *          array(
+   *            'created_at',
+   *            'created_by',
+   *            'updated_at',
+   *            'updated_by'
+   *          );
+   *        </code>
    *
-   * @return Array
+   * @return array
    */
   static public function getIgnoreFields($class = null)
   {
     $fields = array('created_at', 'created_by', 'updated_at', 'updated_by');
     $field_collections = sfConfig::get('app_nc_change_log_behavior_ignore_fields', array());
-    
+
     if (isset($field_collections['any_class']))
     {
       $fields = array_merge($fields, $field_collections['any_class']);
@@ -89,21 +89,21 @@ class ncChangeLogConfigHandler
     {
       $fields = array_merge($fields, $field_collections[$class]);
     }
-    
+
     return $fields;
   }
-  
 
-  static public function getObjectNameTranslationMethod()
+
+  static public function getObjectTranslationMethod()
   {
     return sfConfig::get('app_nc_change_log_behavior_object_translation_method', 'getHumanName') ;
   }
-  
+
   static public function getFieldNameTranslationMethod()
   {
-    return sfConfig::get('app_nc_change_log_behavior_object_translation_method', 'translateField');
+    return sfConfig::get('app_nc_change_log_behavior_field_translation_method', 'translateField');
   }
-  
+
   static public function fireFieldFormattingEvents()
   {
     return sfConfig::get('app_nc_change_log_behavior_fire_formatting_events', true);

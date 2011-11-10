@@ -121,32 +121,36 @@ class ncChangeLogUpdateChange
     );
   }
 
-  protected function getForeignValue($value, $method = '__toString')
+  protected function getForeignValue($value)
   {
     if (ncChangeLogConfigHandler::getForeignValues() && $this->isForeignKey())
     {
-      $tableMap = $this->adapter->getTableMap();
       $columnMap = $this->getColumnMap();
-
-      // this will initialize the relations if they are not available yet
-      $tableMap->getRelations();
-
-      $relatedObjectClass     = $columnMap->getRelatedTable()->getClassname();
-      $relatedObjectPeerClass = constant($relatedObjectClass . '::PEER');
+      $relatedObjectPeerClass = $columnMap->getRelatedTable()->getPeerClassname();
 
       if (class_exists($relatedObjectPeerClass))
       {
         $object = call_user_func(array($relatedObjectPeerClass, 'retrieveByPK'), $value);
-        return method_exists($object, $method) ? $object->$method() : $value;
+        $toStringMethod = ncChangeLogConfigHandler::getObjectTranslationMethod();
+
+        if (method_exists($object, $toStringMethod))
+        {
+          return $object->$toStringMethod();
+        }
+        elseif (method_exists($object, '__toString'))
+        {
+          return $object->__toString();
+        }
+        // else we cannot stringify, fallback to the normalized PK
       }
     }
 
-    return $value;
+    return ncChangeLogUtils::normalizePK($value);
   }
 
   public function isForeignKey()
   {
-    if ($columnMap = $this->getColumnMap())
+    if (( $columnMap = $this->getColumnMap() ))
     {
       return $columnMap->isForeignKey();
     }

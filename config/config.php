@@ -17,7 +17,7 @@ sfPropelBehavior::registerHooks('changelog', array(
   ':delete:post'  => array('ncPropelChangeLogBehavior', 'postDelete'),
 ));
 
-if (sfConfig::get('app_nc_change_log_behavior_register_routes', false) && in_array('ncChangeLogEntry', sfConfig::get('sf_enabled_modules', array())))
+if (sfConfig::get('app_nc_change_log_behavior_register_routes', true) && in_array('ncChangeLogEntry', sfConfig::get('sf_enabled_modules', array())))
 {
   // setup the ncChangeLogEntry routes
   $this->dispatcher->connect('routing.load_configuration', array('ncChangeLogRouting', 'listenToRoutingLoadConfigurationEvent'));
