@@ -7,7 +7,7 @@ class ncChangeLogConfigHandler
     return sfConfig::get("app_nc_change_log_behavior_get_foreign_values", false);
   }
 
-  static public function UnescapeValues()
+  static public function unescapeValues()
   {
     return sfConfig::get("app_nc_change_log_behavior_unescape_values", false);
   }

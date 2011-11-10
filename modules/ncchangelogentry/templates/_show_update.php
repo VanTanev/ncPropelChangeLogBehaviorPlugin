@@ -19,14 +19,14 @@
         <tr>
           <td><?php echo $change->renderFieldName() ?></td>
           <td>
-            <?php if (ncChangeLogConfigHandler::shouldEscapeValues()): ?>
+            <?php if (ncChangeLogConfigHandler::unescapeValues()): ?>
               <?php echo sfOutputEscaper::unescape($change->getOldValue(true)) ?>
             <?php else: ?>
               <?php echo $change->getOldValue(true) ?>
             <?php endif ?>
           </td>
           <td>
-            <?php if (ncChangeLogConfigHandler::shouldEscapeValues()): ?>
+            <?php if (ncChangeLogConfigHandler::unescapeValues()): ?>
               <?php echo sfOutputEscaper::unescape($change->getNewValue(true)) ?>
             <?php else: ?>
               <?php echo $change->getNewValue(true) ?>
