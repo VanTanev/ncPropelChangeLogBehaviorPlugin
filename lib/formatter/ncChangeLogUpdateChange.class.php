@@ -107,7 +107,7 @@ class ncChangeLogUpdateChange
   {
     return new sfEvent(
       $this,
-      $this->adapter->getTableName().'.render_'.$this->getFieldName(),
+      $this->adapter->getTableName().'.nc_render_'.$this->getFieldName().'_field',
       array('fieldName' => $this->getFieldName(), 'tableName' => $this->adapter->getTableName(), 'fieldType' => $this->getColumnType())
     );
   }

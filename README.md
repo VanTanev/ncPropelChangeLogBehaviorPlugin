@@ -199,7 +199,7 @@ Custom fields formatting
 -----------------
 
 Whenever a field is rendered, and `fire_formatting_events` option is set to `true`, a filter event is fired for that particular field.
-The event name follows the template "*TABLE_NAME*.render_*FIELD_NAME*", and the value of the field is sent as a parameter.
+The event name follows the template "*TABLE_NAME*.nc_render_*FIELD_NAME*_field", and the value of the field is sent as a parameter.
 This is very useful when you want to render foreign keys or constants. Example use:
 
 We have a table named **summary** that has an integer field named `current_state`.
@@ -208,7 +208,7 @@ We have a table named **summary** that has an integer field named `current_state
 <?php
 ## in /apps/<application>/config/<application>Configuration.class.php
 
-$this->dispatcher->connect('summary.render_current_state', array('SummaryPeer', 'renderCurrentStateField'));
+$this->dispatcher->connect('summary.nc_render_current_state_field', array('SummaryPeer', 'renderCurrentStateField'));
 ```
 
 Now in the *Summary* peer class we will associate the integer values with a string.
@@ -250,7 +250,7 @@ Changelog customization
 -----------------------
 
 The ncChangeLogBehavior will fire an event before a new changelog entry is written to the database,
-allowing you to modify it. The name of the event is "*TABLE_NAME*.nc_filter_changes".
+allowing you to modify it. The name of the event is "*TABLE_NAME*.nc_filter_changelog".
 The subject of the event is the Propel object, and the value to be filtered is the changes, in the following format:
 
 ```php

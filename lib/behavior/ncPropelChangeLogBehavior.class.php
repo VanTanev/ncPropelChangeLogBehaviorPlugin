@@ -60,7 +60,7 @@ class ncPropelChangeLogBehavior
    */
   public function postSave(BaseObject $object, $con = null)
   {
-    if (isset($object->changelogEntry) && $object->changelogEntry instanceof ncChangeLogEntry)
+    if ($object->changelogEntry instanceof ncChangeLogEntry)
     {
       if ($object->changelogEntry->isOperation(ncChangeLogEntryOperation::NC_CHANGE_LOG_ENTRY_OPERATION_INSERTION))
       {
@@ -396,43 +396,43 @@ class ncPropelChangeLogBehavior
     // hack: remove $object from it's Peer's instance pool before diff is computed
     call_user_func(array($objectPeerClass, 'removeInstanceFromPool'), $object);
 
-    $stored_object = call_user_func_array(array($objectPeerClass, 'retrieveByPK'), is_array($object->getPrimaryKey()) ? $object->getPrimaryKey() : array($object->getPrimaryKey()));
+    $storedObject = call_user_func_array(array($objectPeerClass, 'retrieveByPK'), (array) $object->getPrimaryKey());
 
-    if (!$stored_object || !$object->isModified())
+    if ( !($storedObject && $object->isModified()) )
     {
-      // Unable to retrieve object from database: do nothing
+      // There is no previously stored object and no modifications were detected: do nothing
       $object->changelogEntry = null;
       return false;
     }
 
-    if ( ! isset($object->changelogEntry) || ! $object->changelogEntry instanceof ncChangeLogEntry)
+    if ( !$object->changelogEntry instanceof ncChangeLogEntry )
     {
       // the object must have a changelogEntry property
       $object->changelogEntry = new ncChangeLogEntry($object);
     }
 
-    $ignored_fields = ncChangeLogConfigHandler::getIgnoreFields(get_class($object));
+    $ignoredFields = ncChangeLogConfigHandler::getIgnoreFields(get_class($object));
     $tableMap = call_user_func(array($objectPeerClass, 'getTableMap'));
 
     $diff = array('changes' => array());
 
     foreach ($object->getModifiedColumns() as $column)
     {
-      $col_fieldName = BasePeer::translateFieldname(get_class($object), $column, BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME);
+      $colFieldName = BasePeer::translateFieldname(get_class($object), $column, BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME);
 
-      if (!in_array($col_fieldName, $ignored_fields))
+      if (!in_array($colFieldName, $ignoredFields))
       {
         $columnMap = $tableMap->getColumn($column);
-        list ($value_method, $params) = ncChangeLogUtils::extractValueMethod($columnMap);
+        list ($valueMethod, $params) = ncChangeLogUtils::extractValueMethod($columnMap);
 
-        $diff['changes'][$col_fieldName] = array(
-          'old'   => $stored_object->$value_method($params),
-          'new'   => $object->$value_method($params),
-          'field' => $col_fieldName,
+        $diff['changes'][$colFieldName] = array(
+          'old'   => $storedObject->$valueMethod($params),
+          'new'   => $object->$valueMethod($params),
+          'field' => $colFieldName,
           'type'  => $columnMap->getType(),
           'raw'    => array(
-            'old'   => $stored_object->$value_method(),
-            'new'   => $object->$value_method(),
+            'old'   => $storedObject->$valueMethod(),
+            'new'   => $object->$valueMethod(),
           )
         );
       }
@@ -441,7 +441,7 @@ class ncPropelChangeLogBehavior
     // Filter the changes event; can be used to add custom fields or whatever
     if ( ncChangeLogUtils::getEventDispatcher() )
     {
-      $event = new sfEvent($object, $tableMap->getName() . '.nc_filter_changes');
+      $event = new sfEvent($object, $tableMap->getName() . '.nc_filter_changelog');
       ncChangeLogUtils::getEventDispatcher()->filter($event, $diff);
 
       $diff = $event->getReturnValue();
@@ -458,8 +458,6 @@ class ncPropelChangeLogBehavior
 
     return $object->changelogEntry;
   }
-
-
 
 
 }
