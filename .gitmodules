@@ -1,3 +1,0 @@
-[submodule "test/functional/fixtures/plugins/sfPropelORMPlugin"]
-	path = test/functional/fixtures/plugins/sfPropelORMPlugin
-	url = https://github.com/propelorm/sfPropelORMPlugin.git
