@@ -60,7 +60,7 @@ class ncPropelChangeLogBehavior
    */
   public function postSave(BaseObject $object, $con = null)
   {
-    if ($object->changelogEntry instanceof ncChangeLogEntry)
+    if (isset($object->changelogEntry) && $object->changelogEntry instanceof ncChangeLogEntry)
     {
       if ($object->changelogEntry->isOperation(ncChangeLogEntryOperation::NC_CHANGE_LOG_ENTRY_OPERATION_INSERTION))
       {
@@ -405,7 +405,7 @@ class ncPropelChangeLogBehavior
       return false;
     }
 
-    if ( !$object->changelogEntry instanceof ncChangeLogEntry )
+    if ( !(isset($object->changelogEntry) && $object->changelogEntry instanceof ncChangeLogEntry) )
     {
       // the object must have a changelogEntry property
       $object->changelogEntry = new ncChangeLogEntry($object);
