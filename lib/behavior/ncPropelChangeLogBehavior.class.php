@@ -347,12 +347,12 @@ class ncPropelChangeLogBehavior
   *
   * @param BaseObject $object
   * @param string $message
-  * @param string $user You can set a custom user for custom messages, or leave it to autodetect
+  * @param string $username You can manually set the name of the user making the change or leave it to autodetect
   * @param PropelPDO $con
   *
   * @return BaseObject
   */
-  public function setCustomChangeMessage(BaseObject $object, $message, $user = null, PropelPDO $con = null)
+  public function setCustomChangeMessage(BaseObject $object, $message, $username = null, PropelPDO $con = null)
   {
     if ( !is_scalar($message) )
     {
@@ -361,7 +361,7 @@ class ncPropelChangeLogBehavior
 
     $entry = new ncChangeLogEntry($object);
     $entry->setOperationType(ncChangeLogEntryOperation::CUSTOM_MESSAGE);
-    $entry->setUsername(is_null($user) ? ncChangeLogUtils::getUsername() : $user);
+    $entry->setUsername(is_null($username) ? ncChangeLogUtils::getUsername() : $username);
     $entry->setChangesDetail(array(
       'message' => $message
     ));
