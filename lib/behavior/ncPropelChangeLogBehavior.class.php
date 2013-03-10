@@ -419,12 +419,13 @@ class ncPropelChangeLogBehavior
     foreach ($object->getModifiedColumns() as $column)
     {
       $colFieldName = BasePeer::translateFieldname(get_class($object), $column, BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME);
+      $columnMap = $tableMap->getColumn($column);
+      list ($valueMethod, $params) = ncChangeLogUtils::extractValueMethod($columnMap);
 
-      if (!in_array($colFieldName, $ignoredFields))
+      $data_is_changed = $storedObject->$valueMethod($params) !== $object->$valueMethod();
+      if (!in_array($colFieldName, $ignoredFields) && $data_is_changed)
       {
-        $columnMap = $tableMap->getColumn($column);
-        list ($valueMethod, $params) = ncChangeLogUtils::extractValueMethod($columnMap);
-
+        dd($valueMethod, $params, $storedObject->$valueMethod($params), $object->$valueMethod());
         $diff['changes'][$colFieldName] = array(
           'old'   => $storedObject->$valueMethod($params),
           'new'   => $object->$valueMethod($params),
