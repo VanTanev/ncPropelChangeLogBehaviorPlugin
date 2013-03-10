@@ -425,7 +425,6 @@ class ncPropelChangeLogBehavior
       $data_is_changed = $storedObject->$valueMethod($params) !== $object->$valueMethod();
       if (!in_array($colFieldName, $ignoredFields) && $data_is_changed)
       {
-        dd($valueMethod, $params, $storedObject->$valueMethod($params), $object->$valueMethod());
         $diff['changes'][$colFieldName] = array(
           'old'   => $storedObject->$valueMethod($params),
           'new'   => $object->$valueMethod($params),
