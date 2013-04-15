@@ -210,6 +210,11 @@ class ncChangeLogUpdateChange
         $res = $this->getForeignValue($value);
       }
 
+      if (!is_scalar($res))
+      {
+        $res = var_export($res, true);
+      }
+
       $this->filtered_vars[$hash] = $res;
     }
 
